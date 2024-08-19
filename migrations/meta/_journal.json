@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1720733495745,
+      "tag": "0000_orange_bloodscream",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1720903816004,
+      "tag": "0001_omniscient_vector",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1721409893228,
+      "tag": "0002_serious_hobgoblin",
+      "breakpoints": true
+    }
+  ]
+}
