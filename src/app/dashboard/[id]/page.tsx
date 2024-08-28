@@ -24,7 +24,7 @@ export default function Dashboard() {
   const navlinks = dashboardLinks(id)
   const router = useRouter()
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
-  const [kycStatus, setKycStatus] = useState<null | boolean>(true)
+  const [kycStatus, setKycStatus] = useState<null | boolean>(null) // must be null at all times to show sk
   
   const checkKyc = async ()  => {
     try {
@@ -33,6 +33,7 @@ export default function Dashboard() {
         console.log(error)
         setPopup({ message: error.message, mode: 'error', show: true })
       }
+      // note that data returned is bool
       if (data) {
         setKycStatus(true)
       } else setKycStatus(false)

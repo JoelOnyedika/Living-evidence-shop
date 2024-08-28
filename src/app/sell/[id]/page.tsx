@@ -10,8 +10,8 @@ import { hasUserCompletedKyc } from '@/lib/supabase/queries/kyc'
 import { IPopupMessage } from '@/lib/types'
 
 export default function Sell() {
-  const [hasUserDoneKyc, setHasUserDoneKyc] = useState(true) // MUST BE SET TO NULL EXCEPT ON TESTING
-  const [kycStatus, setKycStatus] = useState('yes') // MUST BE SET TO NULL EXCEPT ON TESTING
+  const [hasUserDoneKyc, setHasUserDoneKyc] = useState(null) // MUST BE SET TO NULL EXCEPT ON TESTING
+  const [kycStatus, setKycStatus] = useState(null) // MUST BE SET TO NULL EXCEPT ON TESTING
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
   const [userId, setUserId] = useState(null)
 
@@ -40,7 +40,7 @@ export default function Sell() {
         setPopup({ message: "Whoops something went wrong please refresh", mode: "error", show: true })
       }
     }
-    //confirmIfKyc()
+    confirmIfKyc()
   }, [id])
 
   const showPopup = (message, mode) => {

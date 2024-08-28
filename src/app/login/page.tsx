@@ -48,9 +48,13 @@ const onSubmit: SubmitHandler<z.infer<typeof LoginFormSchema>> = async (
       } else {
         console.log("loginData", data)
         const {email} = formData
-        const sessionCookie = await createSessionCookie(email)
-        console.log(sessionCookie)
-        //router.replace("/dashboard/home");
+        const cookie = await createSessionCookie(email)
+        console.log(cookie)
+        if (cookie.error) {
+          setSubmitError(cookie.error.message)
+        }
+        const parsedRoute = JSON.parse(cookie?.data.value)
+        router.replace( `/dashboard/${parsedRoute.id}`)
       }
     } catch (error) {
       console.log(error);

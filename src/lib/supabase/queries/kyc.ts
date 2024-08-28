@@ -88,7 +88,6 @@ export const checkKycStatus = async(userId: number ) => {
 		}
 		return { data: false, error: null }
 
-		return { data, error: null }	
 	} 
 	catch(error) {
 		console.log(error)
