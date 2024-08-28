@@ -8,6 +8,8 @@ import Navbar from '@/components/Hero/Navbar'
 import PopupMessage from '@/components/global/Popup'
 import { hasUserCompletedKyc } from '@/lib/supabase/queries/kyc'
 import { IPopupMessage } from '@/lib/types'
+import DashSkeleton from '@/components/Dashboard/DashSkeleton'
+
 
 export default function Sell() {
   const [hasUserDoneKyc, setHasUserDoneKyc] = useState(null) // MUST BE SET TO NULL EXCEPT ON TESTING
@@ -74,7 +76,7 @@ export default function Sell() {
       </div>
       <div>
         {kycStatus === null ? (
-          <span>Loading</span>
+          <DashSkeleton />
         ) : !hasUserDoneKyc || kycStatus === false ? (
           <KycForm />
         ) : kycStatus === 'yes' ? (
