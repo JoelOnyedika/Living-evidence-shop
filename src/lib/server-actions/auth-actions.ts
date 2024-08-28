@@ -75,13 +75,19 @@ export async function actionLoginUser({
 }: z.infer<typeof FormSchema>) {
   const supabase = await createClient()
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
-    return error?.message.toString()  
+    if (error) {
+      console.log(error)
+      return { data: null, error:{ message: error.message } }
+    }
+    return { data, error: null }
+
   } catch (error) {
     console.log(error)
+    return { data: null, error: { message: "Whoops, something went wrong..." } }
   }
   
 }
@@ -124,7 +130,7 @@ export async function createSessionCookie(email = null) {
         .select("*")
         .eq("email", email);
 
-      if (error) throw error;
+      if (error) return { data: null, error : {message: error.message}};
 
       if (data && data.length > 0) {
         const user = data[0];
@@ -139,22 +145,24 @@ export async function createSessionCookie(email = null) {
     }
 
     // Update the user data in the database
-    const { error: updateError } = await supabase
-      .from("basic_profiles")
-      .update({ username: fullName, email: userEmail })
-      .eq("email", userEmail);
+    // const { error: updateError } = await supabase
+    //   .from("basic_profiles")
+    //   .update({ username: fullName, email: userEmail })
+    //   .eq("email", userEmail);
 
-    if (updateError) throw updateError;
+    // if (updateError) throw updateError;
 
     // Set the user cookie
     cookies().set("userCookie", JSON.stringify({ username: fullName, userEmail, id: id }), {
       httpOnly: true,
       secure: true,
     });
-
-    console.log(cookies().get('userCookie'));
+    const cookie = cookies().get('userCookie')
+    console.log(cookie);
+    return { data: cookie, error: null }
   } catch (error) {
     console.log('Error creating session cookie:', error);
+    return { data: null, error: { message: "Whoops something went wrong while signing up..." } }
   }
 }
 

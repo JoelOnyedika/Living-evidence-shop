@@ -31,6 +31,7 @@ const Signup = () => {
   const [confirmation, setConfirmation] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof FormSchema>>({
     mode: "onChange",
@@ -66,8 +67,14 @@ const Signup = () => {
 
         const cookie = await createSessionCookie(formData.email)
         console.log(cookie)
+        if (cookie.error) {
+          setSubmitError(cookie.error.message)
+        }
+        const parsedRoute = JSON.parse(cookie?.data.value)
+        router.replace( `/dashboard/${parsedRoute.id}`)
 
-        setConfirmation(true);
+        // THIS STATE SHOULD BE SET ONLY IF THE EMAIL CONFIRMATION IS ENABLED
+        // setConfirmation(true); 
       }
       
     } catch (error) {

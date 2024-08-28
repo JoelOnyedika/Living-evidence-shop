@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {useState} from "react";
-import {loginFormSchema} from "@/lib/types";
+import {LoginFormSchema} from "@/lib/types";
 
 import { actionLoginUser, createSessionCookie, signUpWithOAuth } from "@/lib/server-actions/auth-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,9 +25,9 @@ import { FcGoogle } from "react-icons/fc";
 import Link from 'next/link'
 
 const Login = () => {
-  const form = useForm<z.infer<typeof loginFormSchema>>({
+  const form = useForm<z.infer<typeof LoginFormSchema>>({
     mode: "onChange",
-    resolver: zodResolver(loginFormSchema),
+    resolver: zodResolver(LoginFormSchema),
     defaultValues: {
       username: "",
       email: "",
@@ -39,16 +39,18 @@ const onSubmit: SubmitHandler<z.infer<typeof LoginFormSchema>> = async (
     formData
   ) => {
     try {
-      const error = await actionLoginUser(formData);
+      const {data, error} = await actionLoginUser(formData);
       console.log(error);
       if (error) {
         form.reset();
-        setSubmitError(error);
+        setSubmitError(error.message);
         console.log("error", error);
       } else {
+        console.log("loginData", data)
         const {email} = formData
         const sessionCookie = await createSessionCookie(email)
-        router.replace("/dashboard/home");
+        console.log(sessionCookie)
+        //router.replace("/dashboard/home");
       }
     } catch (error) {
       console.log(error);
@@ -119,7 +121,6 @@ const onSubmit: SubmitHandler<z.infer<typeof LoginFormSchema>> = async (
                       type="email"
                     />
                   </FormControl>
-                  <FormDescription>This is your public display name.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -138,7 +139,6 @@ const onSubmit: SubmitHandler<z.infer<typeof LoginFormSchema>> = async (
                       type="password"
                     />
                   </FormControl>
-                  <FormDescription>This is your public display name.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

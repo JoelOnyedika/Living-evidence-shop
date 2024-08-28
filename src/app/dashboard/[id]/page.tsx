@@ -24,9 +24,9 @@ export default function Dashboard() {
   const navlinks = dashboardLinks(id)
   const router = useRouter()
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
-  const [kycStatus, setKycStatus] = useState(true)
+  const [kycStatus, setKycStatus] = useState<null | boolean>(true)
   
-  const checkKycStatus = async ()  => {
+  const checkKyc = async ()  => {
     try {
       const { data, error } = await checkKycStatus(id)
       if (error) {
@@ -43,7 +43,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    checkKycStatus()
+    checkKyc()
   }, [])
 
   const showPopup = (message, mode) => {
@@ -73,7 +73,7 @@ export default function Dashboard() {
           />
         )}
       { kycStatus === true ? (
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        (<div className="flex min-h-screen w-full flex-col bg-muted/40">
         <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
           <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
             <TooltipProvider>
@@ -140,6 +140,7 @@ export default function Dashboard() {
                     <span className="sr-only">Acme Inc</span>
                   </Link>
                   { navlinks.map((data) => (
+                      // eslint-disable-next-line react/jsx-key
                       <Link
                         href={data.href}
                         className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
@@ -238,7 +239,7 @@ export default function Dashboard() {
             </div>
           </main>
         </div>
-      </div>
+      </div>)
         ) : kycStatus === null ? (<DashSkeleton/>) : router.push(`/sell/${id}`) }
       
     </div>
