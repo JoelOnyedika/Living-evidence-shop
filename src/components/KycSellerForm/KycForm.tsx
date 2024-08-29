@@ -34,9 +34,35 @@ export default function KycForm({ userId }: any) {
 
   const onSubmit: SubmitHandler<z.infer<typeof DetailedKycSchema>> = async (formData: any) => {
     console.log("Something")
-    console.log(formData)
+    console.log('before', formData)
+    const handleFileData = (file: File) => {
+      if (file instanceof File) {
+        return {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          lastModified: file.lastModified,
+        };
+      }
+      return null;
+    };
+
+    const processedFormData = { ...formData };
+
+    // Handle File objects
+    if (processedFormData.profilePhoto instanceof File) {
+      processedFormData.profilePhoto = handleFileData(processedFormData.profilePhoto);
+    }
+    if (processedFormData.governmentID instanceof File) {
+      processedFormData.governmentID = handleFileData(processedFormData.governmentID);
+    }
+  
+    // Stringify the processed form data
+    const stringifiedFormData = JSON.stringify(processedFormData);
+    console.log(stringifiedFormData)
+
     try {
-      const { data: userKycData, error: userKycError } = await createUserKyc(formData, userId)
+      const { data: userKycData, error: userKycError } = await createUserKyc(stringifiedFormData, userId)
       if (userKycError) {
         console.log(userKycError)
         setPopup({ message: "Something went wrong, please refresh", mode: "error", show: true })
@@ -47,7 +73,8 @@ export default function KycForm({ userId }: any) {
           console.log(userKycStatusError)
           setPopup({ message: "Something went wrong, please refresh", mode: "error", show: true }) 
         }
-        return router.push('/')
+        console.log(data)
+        //return router.push('/')
     } catch(error) {
         console.log(error)
         setPopup({ message: "Something went wrong, please refresh", mode: "error", show: true }) 
