@@ -12,8 +12,8 @@ import DashSkeleton from '@/components/Dashboard/DashSkeleton'
 
 
 export default function Sell() {
-  const [hasUserDoneKyc, setHasUserDoneKyc] = useState(null) // MUST BE SET TO NULL EXCEPT ON TESTING
-  const [kycStatus, setKycStatus] = useState(null) // MUST BE SET TO NULL EXCEPT ON TESTING
+  const [hasUserDoneKyc, setHasUserDoneKyc] = useState(true) // MUST BE SET TO NULL EXCEPT ON TESTING
+  const [kycStatus, setKycStatus] = useState('yes') // MUST BE SET TO NULL EXCEPT ON TESTING
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
   const [userId, setUserId] = useState(null)
 
@@ -74,7 +74,7 @@ export default function Sell() {
           />
         )}
       </div>
-      <div>
+      {/* <div>
         {kycStatus === null ? (
           <DashSkeleton />
         ) : !hasUserDoneKyc || kycStatus === false ? (
@@ -84,7 +84,10 @@ export default function Sell() {
         ) : (
           <span>your kyc is pending please wait</span>
         )}
-      </div>
+      </div> */}
+      {/* FOR DEV PUEPOSE ONLY ELSE UNCOMMENT THAT CODE ABOVE */}
+        <SellForm />
+
     </div>
   )
 }

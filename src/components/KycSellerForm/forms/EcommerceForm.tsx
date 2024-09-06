@@ -16,39 +16,37 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { RealEstateFormSchema as formSchema, IPopupMessage } from '@/lib/types'
+import { EcommerceFormSchema as formSchema, IPopupMessage } from '@/lib/types'
 import { useState }from 'react'
 import { createClient } from "@/lib/supabase"
 import { uploadEcommerceForm } from "@/lib/supabase/queries/uploadForms"
-import { useParams } from 'next/navigation'
-import { useRouter } from "next/router"
+import { useParams, useRouter } from 'next/navigation'
 import Loader from "@/components/global/loader"
 
 export default function EcommerceForm(updateData=[]) {
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
+  const { id } = useParams()
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      price: 0,
-      category: "",
+      price: 0,category: ""
     },
   })
 
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     console.log(formData)
     try {
-      const { id } = useParams()
-      const router = useRouter()
       const { data, error } = await uploadEcommerceForm(formData, id)
       if (error) {
         console.log(error)
         setPopup({ message: error.message, mode: 'error', show: true })
       }
       console.log(data)
-      return router.push(`/dashboard/${id}/listings`)
+      //return router.push(`/dashboard/${id}/listings`)
 
     } catch (error) {
       console.log(error)

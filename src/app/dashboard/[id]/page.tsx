@@ -24,7 +24,7 @@ export default function Dashboard() {
   const navlinks = dashboardLinks(id)
   const router = useRouter()
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
-  const [kycStatus, setKycStatus] = useState<null | boolean>(null) // must be null at all times to show sk
+  const [kycStatus, setKycStatus] = useState<null | boolean>(true) // must be null at all times to show sk
   
   const checkKyc = async ()  => {
     try {
@@ -36,7 +36,9 @@ export default function Dashboard() {
       // note that data returned is bool
       if (data) {
         setKycStatus(true)
+        return true
       } else setKycStatus(false)
+        return false
     } catch (error) {
       console.log(error)
       setPopup({ message: "Whoops something went wrong. Please refresh", mode: 'error', show: true })
@@ -44,7 +46,9 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    checkKyc()
+    // const result = checkKyc()
+    // DO A CHECK TO SEE IF KYC RESULT IS TRUE OR FLASE
+    
   }, [])
 
   const showPopup = (message, mode) => {
@@ -74,7 +78,7 @@ export default function Dashboard() {
           />
         )}
       { kycStatus === true ? (
-        (<div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
           <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
             <TooltipProvider>
@@ -240,7 +244,7 @@ export default function Dashboard() {
             </div>
           </main>
         </div>
-      </div>)
+      </div>
         ) : kycStatus === null ? (<DashSkeleton/>) : router.push(`/sell/${id}`) }
       
     </div>

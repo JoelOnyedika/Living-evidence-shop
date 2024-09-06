@@ -62,9 +62,9 @@ export const DetailedKycSchema = z.object({
 export const EcommerceFormSchema = z.object({
   title: z.string().min(3, {message: "Title must have at least three characters"}).max(20, {message: "Title must have at most 20 characters"}),
   description: z.string().min(10, {message: "Description must have at least ten characters"}).max(250, {message: "Title must have at most 250 characters"}),
-  price: z.string().regex(numberRegex),
+  price: z.number().positive("Price must be a positive number"),
   image: ImageSchema,
-  category: z.array(z.string()).min(1, 'Select a category'),
+  category: z.string(),
 })
 
 export const JobFormSchema = z.object({
@@ -93,7 +93,7 @@ export const RealEstateFormSchema = z.object({
     message: "Price must be a positive number.",
   }),
   image: z.any(),
-  propertyType: z.string({
-    required_error: "Please select a category.",
+  category: z.array(z.string()).nonempty({
+    message: "Please select a category.",
   }),
 })

@@ -52,3 +52,20 @@ export const updateUsername = async ({
     return { data: null, error: { message: "An unexpected error occurred" } }
   }
 }
+
+export const getUserDataById = async (id: string) => {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.from('basic_profiles').select('*').eq('id', id)
+    if (error) {
+      console.log(error)
+      return { data, error }
+    }
+    console.log(data)
+    rerturn { data, error }
+    
+  } catch (err) {
+    console.log(err)
+    return { data: null, error: { message: "Whoops something went wrong, please refresh." }} }
+  }
+}
