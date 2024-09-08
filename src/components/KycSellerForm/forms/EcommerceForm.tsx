@@ -2,12 +2,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-
+import { useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,13 +17,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EcommerceFormSchema as formSchema, IPopupMessage } from '@/lib/types'
-import { useState }from 'react'
-import { createClient } from "@/lib/supabase"
-import { uploadEcommerceForm } from "@/lib/supabase/queries/uploadForms"
-import { useParams, useRouter } from 'next/navigation'
 import Loader from "@/components/global/loader"
+import { uploadEcommerceForm } from "@/lib/supabase/queries/uploadForms"
+import { serverUploadAction } from '@/lib/server-actions/uploadFormActions'
 
-export default function EcommerceForm(updateData=[]) {
+export default function EcommerceForm() {
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
   const { id } = useParams()
   const router = useRouter()
@@ -33,33 +31,39 @@ export default function EcommerceForm(updateData=[]) {
     defaultValues: {
       title: "",
       description: "",
-      price: 0,category: ""
+      price: 0,
+      category: "",
+      image: undefined,
     },
   })
 
-  async function onSubmit(formData: z.infer<typeof formSchema>) {
-    console.log(formData)
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('description', data.description);
+    formData.append('price', data.price.toString());
+    formData.append('category', data.category);
+    formData.append('image', data.image as File);
+    formData.append('userId', id as string);
+
     try {
-      const { data, error } = await uploadEcommerceForm(formData, id)
-      if (error) {
-        console.log(error)
-        setPopup({ message: error.message, mode: 'error', show: true })
+      const result = await serverUploadAction(formData);
+      console.log(result)
+      if (result.error) {
+        setPopup({ message: result.error.message, mode: 'error', show: true });
+      } else {
+        setPopup({ message: "Product uploaded successfully", mode: 'success', show: true });
+        router.push(`/dashboard/${id}/listings`);
       }
-      console.log(data)
-      //return router.push(`/dashboard/${id}/listings`)
-
     } catch (error) {
-      console.log(error)
-      setPopup({ message: "Whoops something went wrong", mode: 'error', show: true })
-
+      console.error(error);
+      setPopup({ message: "Whoops, something went wrong", mode: 'error', show: true });
     }
   }
 
-  const isSubmitting = form.formState.isSubmitting
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 py-5">
+      <form action={form.handleSubmit(onSubmit)} className="space-y-8 py-5">
         <FormField
           control={form.control}
           name="title"
@@ -106,7 +110,7 @@ export default function EcommerceForm(updateData=[]) {
             <FormItem>
               <FormLabel>Image</FormLabel>
               <FormControl>
-                <Input type="file" {...field} value={field.value?.filename} onChange={(e) => field.onChange(e.target.files?.[0])} />
+                <Input type="file" onChange={(e) => field.onChange(e.target.files?.[0])} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,7 +138,9 @@ export default function EcommerceForm(updateData=[]) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting} className="w-full">{isSubmitting ? <Loader />: "Submit"}</Button>
+        <Button type="submit" className="w-full">
+          {form.formState.isSubmitting ? <Loader /> : "Submit"}
+        </Button>
       </form>
     </Form>
   )
