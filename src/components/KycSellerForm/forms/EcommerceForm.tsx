@@ -33,33 +33,47 @@ export default function EcommerceForm() {
       description: "",
       price: 0,
       category: "",
-      image: undefined,
+      image: null,
     },
   })
 
-  async function onSubmit(data: z.infer<typeof formSchema>) {
-    const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    formData.append('price', data.price.toString());
-    formData.append('category', data.category);
-    formData.append('image', data.image as File);
-    formData.append('userId', id as string);
+  const convertToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+}
 
-    try {
-      const result = await serverUploadAction(formData);
-      console.log(result)
-      if (result.error) {
-        setPopup({ message: result.error.message, mode: 'error', show: true });
-      } else {
-        setPopup({ message: "Product uploaded successfully", mode: 'success', show: true });
-        router.push(`/dashboard/${id}/listings`);
+    async function onSubmit(data: z.infer<typeof formSchema>) {
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('description', data.description);
+      formData.append('price', data.price.toString());
+      formData.append('category', data.category);
+
+      if (data.image instanceof File) {
+        const base64Image = await convertToBase64(data.image);
+        formData.append('image', base64Image);
       }
-    } catch (error) {
-      console.error(error);
-      setPopup({ message: "Whoops, something went wrong", mode: 'error', show: true });
+
+      formData.append('userId', id as string);
+
+      try {
+        const result = await serverUploadAction(formData);
+        if (result.error) {
+          setPopup({ message: result.error.message, mode: 'error', show: true });
+        } else {
+          setPopup({ message: "Product uploaded successfully", mode: 'success', show: true });
+          router.push(`/dashboard/${id}/listings`);
+        }
+      } catch (error) {
+        console.error(error);
+        setPopup({ message: "Whoops, something went wrong", mode: 'error', show: true });
+      }
     }
-  }
+  
 
   return (
     <Form {...form}>
