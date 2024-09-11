@@ -29,11 +29,11 @@ export async function POST(request: NextRequest) {
     const brand = formData.get('brand') as string;
     const model = formData.get('model') as string;
     const condition = formData.get('condition') as string;
-    const image = formData.get('image') as File;
+    const images = formData.getAll('image') as File[];
     
     console.log(
         'route',
-        image
+        images
     )
 
     const productId = uuidv4();
@@ -42,10 +42,11 @@ export async function POST(request: NextRequest) {
       'ecommerce',
       cookie.id,
       productId,
-      [image]
+      images
     );
     if (imageUrls.error) {
-        console.log('image',imageUrls.error)
+      console.log('image',imageUrls.error)
+      return NextResponse.json({ success: false, error: error.message })
     }
 
     // Create Supabase client

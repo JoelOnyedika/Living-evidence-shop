@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, date, reference } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, integer, date, reference, jsonb } from 'drizzle-orm/pg-core';
 
 // Basic user profile schema
 export const basicProfiles = pgTable('basic_profiles', {
@@ -166,4 +166,14 @@ export const dashboard = pgTable('dashboard', {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
+});
+
+export const chat = pgTable('chat', {
+  id: uuid('id').primaryKey().notNull(),
+  userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
+  productId: uuid('product_id').notNull(),
+  productType: text('product_type').notNull(),
+  messages: jsonb('messages').notNull().default('[]'),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull()
 });

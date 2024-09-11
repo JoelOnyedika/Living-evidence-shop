@@ -1,4 +1,9 @@
-import { Label } from "@/components/ui/label";
+import React, { useState } from 'react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -8,77 +13,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { RealEstateFormSchema, IPopupMessage } from "@/lib/types";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import PopupMessage from "@/components/global/Popup";
-import { useParams, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
-import { z } from "zod";
-import { uploadRealEstateForm } from "@/lib/supabase/queries/uploadForms";
 import Loader from "@/components/global/loader";
-import { Button } from "@/components/ui/button";
 
-const RealEstateForm = (updateData=[]) => {
+const RealEstateForm = () => {
   const [popup, setPopup] = useState<IPopupMessage>({
     message: "",
     mode: null,
     show: false,
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const params = useParams()
-
-  const showPopup = (message: string, mode: string | null) => {
-    setPopup({ show: true, message, mode });
-  };
-
-  const hidePopup = () => {
-    setPopup({ show: false, message: "", mode: null });
-  };
+  const params = useParams();
 
   const form = useForm<z.infer<typeof RealEstateFormSchema>>({
-    mode: "onChange",
     resolver: zodResolver(RealEstateFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      price: 0,
+      location: "",
+      propertyType: "",
+      image: null,
+    },
   });
 
-  
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<typeof RealEstateFormSchema>) => {
     setIsSubmitting(true);
     const formData = new FormData();
-    formData.append('userId', params.id); // Replace with actual user ID
+    formData.append('userId', params.id);
     formData.append('title', data.title);
     formData.append('location', data.location);
     formData.append('description', data.description);
     formData.append('price', data.price.toString());
     formData.append('propertyType', data.propertyType);
-    formData.append('image', data.image);
-  
+    data.image.forEach((image, index) => {
+      formData.append(`image`, image);
+    });
+
     try {
-      const response = await fetch('/api/upload/ecommerce', {
+      const response = await fetch('/api/upload/realEstate', {
         method: 'POST',
         body: formData,
       });
-  
+
       if (!response.ok) {
-        setPopup({ message: 'Failed to upload', mode: 'error', show: true });
-        console.log(response);
+        setPopup({message: 'Failed to upload', mode: 'error'});
       }
-  
+
       const result = await response.json();
-      console.log(result);
-      router.push(`/buy/${result.productId}`);
+      router.push(`/buy/realestate/${result.productId}`);
     } catch (error) {
-      console.error('Error:', error);
+      console.log('Error:', error);
       setPopup({ message: 'Whoops, something went wrong', mode: 'error', show: true });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
 
+  const hidePopup = () => {
+    setPopup({ show: false, message: "", mode: null });
+  };
 
   return (
     <>
@@ -98,92 +103,108 @@ const RealEstateForm = (updateData=[]) => {
           }}
         />
       )}
-      <form className="grid gap-4" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid gap-2 py-5">
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            placeholder="Enter property title"
-            {...form.register("title")}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter property title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.title && (
-            <small className="text-red-500">
-              {form.formState.errors.title.message}
-            </small>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            rows={3}
-            placeholder="Enter property description"
-            {...form.register("description")}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea rows={3} placeholder="Enter property description" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.description && (
-            <small className="text-red-500">
-              {form.formState.errors.description.message}
-            </small>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="price">Price</Label>
-          <Input
-            id="price"
-            type="number"
-            placeholder="Enter property price"
-            {...form.register("price")}
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Enter property price" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.price && (
-            <small className="text-red-500">
-              {form.formState.errors.price.message}
-            </small>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            placeholder="Enter property location"
-            {...form.register("location")}
+          <FormField
+            control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Location</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter property location" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.location && (
-            <small className="text-red-500">
-              {form.formState.errors.location.message}
-            </small>
+          <FormField
+            control={form.control}
+            name="propertyType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Property Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select property type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="residential">Residential</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="land">Land</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image</FormLabel>
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []); // Convert FileList to Array<File>
+                    field.onChange(files); // Pass array of files to field's onChange
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="property-type">Property Type</Label>
-          <Select id="property-type" {...form.register("propertyType")}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select property type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="residential">Residential</SelectItem>
-              <SelectItem value="commercial">Commercial</SelectItem>
-              <SelectItem value="land">Land</SelectItem>
-            </SelectContent>
-          </Select>
-          {form.formState.errors.propertyType && (
-            <small className="text-red-500">
-              {form.formState.errors.propertyType.message}
-            </small>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="image">Image</Label>
-          <Input id="image" type="file" />
-          {form.formState.errors.image && (
-            <small className="text-red-500">
-              {form.formState.errors.image.message}
-            </small>
-          )}
-        </div>
-        <Button className="w-full" type="submit">
-          {isSubmitting ? <Loader/> : "Submit"}
-        </Button>
-      </form>
+      />
+          <Button type="submit" className="w-full">
+            {isSubmitting ? <Loader /> : "Submit"}
+          </Button>
+        </form>
+      </Form>
     </>
   );
 };

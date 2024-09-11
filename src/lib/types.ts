@@ -35,11 +35,7 @@ export const maxFileSize = 5 * 1024 * 1024 //5MB
 export const acceptedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
 
-const ImageSchema = z.object({
-  name: z.string(),
-  size: z.number().max(maxFileSize, "File must be less than 5MB"),
-  type: z.enum(acceptedImageTypes, "File type must be .jpg, .jpeg, .png, .webp")
-})
+
 
 export const DetailedKycSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
@@ -60,12 +56,15 @@ export const DetailedKycSchema = z.object({
 })
 
 export const EcommerceFormSchema = z.object({
-  title: z.string().min(3, {message: "Title must have at least three characters"}).max(20, {message: "Title must have at most 20 characters"}),
-  description: z.string().min(10, {message: "Description must have at least ten characters"}).max(250, {message: "Title must have at most 250 characters"}),
-  price: z.number().positive("Price must be a positive number"),
-  image: ImageSchema,
-  category: z.string(),
-})
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  brand: z.string().min(1, "brand is required"),
+  model: z.string().min(1, "model is required"),
+  price: z.number().positive("Price must be positive"),
+  category: z.string().min(1, "Category is required"),
+  condition: z.string().min(1, "condition is required"),
+  image: z.array(z.instanceof(File)).min(1, "At least one image is required"),
+});
 
 export const JobFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -88,11 +87,7 @@ export const RealEstateFormSchema = z.object({
   location: z.string().min(10, {
     message: "location must be at least 10 characters.",
   }),
-  price: z.string().regex(phoneRegex, {
-    message: "Price must be a positive number.",
-  }),
-  image: z.any(),
-  propertyType: z.array(z.string()).nonempty({
-    message: "Please select a property.",
-  }),
+  price: z.number().positive("Price must be a positive number"),
+  image: z.array(z.instanceof(File)).min(1, "At least one image is required"),
+  propertyType: z.string()
 })

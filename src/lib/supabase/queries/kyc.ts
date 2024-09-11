@@ -4,7 +4,7 @@ import {v4} from 'uuid'
 
 
 
-export const hasUserCompletedKyc = async (id: number) => {
+export const hasUserCompletedKyc = async (id: any) => {
 	try {
 		const supabase = await createClient()
 		const { data, error } = await supabase.from('detailed_profiles').select('*').eq('basic_profile_id', id)

@@ -60,7 +60,7 @@ const JobForm = () => {
       }
 
       const result = await response.json();
-      router.push(`/buy/${result.productId}`);
+      router.push(`/buy/job/${result.productId}`);
     } catch (error) {
       console.error('Error:', error);
       setPopup({ message: 'Whoops, something went wrong', mode: 'error', show: true });

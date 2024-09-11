@@ -16,36 +16,65 @@ export const uploadImages = async (
   pathPrefix: string,
   userId: string,
   productId: string,
-  images: any
-): any => {
-    console.log("images",images)
+  images: File[]
+): Promise<string[]> => {
+  console.log("Images array:", images);
+
+  if (!Array.isArray(images) || images.length === 0) {
+    console.error('Invalid images array');
+    return [];
+  }
+
   const uploadPromises = images.map(async (image, index) => {
-    console.log(image)
-    const fileExt = image.name.split(".").pop();
-    const fileName = `${pathPrefix}/${userId}/${productId}/${Date.now()}_${index}.${fileExt}`;
-    const supabase = await createClient();
+    console.log(`Processing image at index ${index}:`, image);
 
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, image);
-
-    if (error) {
-      console.error(`Error uploading image ${image.name}:`, error);
-      return { data: null, error };
+    if (!(image instanceof File)) {
+      console.error(`Item at index ${index} is not a File object:`, image);
+      return null;
     }
 
-    console.log(data);
+    const fileNameParts = image.name.split(".");
+    if (fileNameParts.length < 2) {
+      console.error(`Image at index ${index} does not have a valid file extension:`, image.name);
+      return null;
+    }
 
-    // Get the public URL of the uploaded image
-    const { publicUrl } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(fileName).data;
-    console.log(publicUrl);
-    return publicUrl;
+    const fileExt = fileNameParts.pop();
+    const fileName = `${pathPrefix}/${userId}/${productId}/${Date.now()}_${index}.${fileExt}`;
+
+    const supabase = await createClient();
+
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, image);
+
+      if (error) {
+        console.error(`Error uploading image ${image.name}:`, error);
+        return null;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+
+      if (!urlData || !urlData.publicUrl) {
+        console.error(`Failed to get public URL for file ${fileName}`);
+        return null;
+      }
+
+      console.log(`Public URL for ${image.name}:`, urlData.publicUrl);
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error(`Unexpected error while processing ${image.name}:`, error);
+      return null;
+    }
   });
 
   const results = await Promise.all(uploadPromises);
-  console.log(results);
+  console.log("Upload results:", results);
+
+  // Filter out null values and return only valid URLs
   return results.filter((url): url is string => url !== null);
 };
 

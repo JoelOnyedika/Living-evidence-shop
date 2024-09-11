@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string;
     const price = parseFloat(formData.get('price') as string);
     const propertyType = formData.get('propertyType') as string;
-    const image = formData.get('image') as File;
+    const images = formData.getAll('image') as File[];
     
 
     const productId = uuidv4();
@@ -36,10 +36,11 @@ export async function POST(request: NextRequest) {
       'real_estate',
       cookie.id,
       productId,
-      [image]
+      images
     );
     if (imageUrls.error) {
         console.log('image',imageUrls.error)
+        return NextResponse.json({ success: false, error: error.message })
     }
 
     // Create Supabase client
