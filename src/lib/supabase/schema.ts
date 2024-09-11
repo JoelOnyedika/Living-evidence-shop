@@ -106,8 +106,8 @@ export const ecommerceProducts = pgTable('ecommerce_products', {
   description: text('description').notNull(),
   category: text('category').notNull(),
   image: text('image').notNull(),
-  brand: text('brand'),
-  model: text('model'),
+  brand: text('brand').notNull(),
+  model: text('model').notNull(),
   condition: text('condition'),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
