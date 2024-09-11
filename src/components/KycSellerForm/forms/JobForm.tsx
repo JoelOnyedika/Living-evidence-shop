@@ -1,10 +1,13 @@
-'use client'
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Textarea } from "@/components/ui/textarea"
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -12,48 +15,63 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { JobFormSchema, IPopupMessage } from '@/lib/types'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
-import PopupMessage from '@/components/global/Popup'
-import * as z from "zod"
-import { useParams } from "next/navigation"
-import { useRouter } from 'next/router'
-import { uploadJobForm } from "@/lib/supabase/queries/uploadForms"
-import Loader from "@/components/global/loader"
+} from "@/components/ui/form";
+import { JobFormSchema, IPopupMessage } from '@/lib/types';
+import PopupMessage from '@/components/global/Popup';
+import Loader from "@/components/global/loader";
 
-const JobForm = (updateData=[]) => {
-  const form = useForm<z.infer<typeof JobFormSchema>>({
+const JobForm = () => {
+  const form = useForm({
     resolver: zodResolver(JobFormSchema),
-  })
+    defaultValues: {
+      title: '',
+      description: '',
+      salary: 0,
+      location: '',
+      jobType: '',
+      image: null,
+    },
+  });
 
-  const onSubmit = async (formData: z.infer<typeof JobFormSchema>) => {
-    const { id } = useParams()
-    const router = useRouter()
-    console.log(formData)
+  const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const params = useParams();
+
+  const onSubmit = async (data: z.infer<typeof JobFormSchema>) => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('userId', params.id);
+    formData.append('title', data.title);
+    formData.append('description', data.description);
+    formData.append('salary', data.salary.toString());
+    formData.append('location', data.location);
+    formData.append('jobType', data.jobType);
+    formData.append('image', data.image);
+
     try {
-      const { data, error }: any = await uploadJobForm(formData, id)
-      if (error) {
-        console.log(error)
-        setPopup({ message: error.message, mode: 'error', show: true })
-      }
-      console.log(data)
-      return router.push(`/dashboard/${id}/listings`)
-    } catch (error) {
-      console.log(error)
-      setPopup({ message: "Whoops something went wrong...", mode: 'error', show: true })
-    }
-  }
+      const response = await fetch('/api/upload/jobPosting', {
+        method: 'POST',
+        body: formData,
+      });
 
-  const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
+      if (!response.ok) {
+        throw new Error('Failed to upload');
+      }
+
+      const result = await response.json();
+      router.push(`/buy/${result.productId}`);
+    } catch (error) {
+      console.error('Error:', error);
+      setPopup({ message: 'Whoops, something went wrong', mode: 'error', show: true });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const hidePopup = () => {
-    setPopup({ message: "", mode: null, show: false })
-  }
-
-  const isSubmitting = form.formState.isSubmitting
+    setPopup({ message: "", mode: null, show: false });
+  };
 
   return (
     <>
@@ -74,7 +92,7 @@ const JobForm = (updateData=[]) => {
         />
       )}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
             name="title"
@@ -139,46 +157,16 @@ const JobForm = (updateData=[]) => {
                     defaultValue={field.value}
                     className="flex flex-col space-y-1"
                   >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="fulltime" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Full-time
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="parttime" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Part-time
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="contract" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Contract
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="internship" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Internship
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="temporary" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Temporary
-                      </FormLabel>
-                    </FormItem>
+                    {['fulltime', 'parttime', 'contract', 'internship', 'temporary'].map((type) => (
+                      <FormItem key={type} className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value={type} />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -198,25 +186,13 @@ const JobForm = (updateData=[]) => {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled />
-                </FormControl>
-              </FormItem>
-            )}
-          />
           <Button type="submit" className="w-full">
             {isSubmitting ? <Loader /> : "Submit"}
           </Button>
         </form>
       </Form>
     </>
-  )
-}
+  );
+};
 
-export default JobForm
+export default JobForm;

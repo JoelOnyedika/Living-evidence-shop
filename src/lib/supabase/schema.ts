@@ -101,10 +101,14 @@ export const ecommerceProducts = pgTable('ecommerce_products', {
   id: uuid('id').primaryKey().notNull(),
   userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
   price: integer('price').notNull(),
+  type: text('type').notNull(),
   title: text('title').notNull(),
   description: text('description').notNull(),
   category: text('category').notNull(),
   image: text('image').notNull(),
+  brand: text('brand'),
+  model: text('model'),
+  condition: text('condition'),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
@@ -118,6 +122,7 @@ export const realEstateListings = pgTable('real_estate_listings', {
   location: text('location').notNull(),
   title: text('title', { length: 30 }).notNull(),
   propertyType: text('property_type').notNull(),
+  type: text('type').notNull(),
   image: text('image').notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
@@ -131,6 +136,7 @@ export const jobPostings = pgTable('job_postings', {
   salary: integer('salary').notNull(),
   location: text('location').notNull(),
   title: text('title', { length: 30 }).notNull(),
+  type: text('type').notNull(),
   jobType: text('job_type').notNull(),
   image: text('image').notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })

@@ -76,7 +76,6 @@ export const JobFormSchema = z.object({
     required_error: "Please select a job type",
   }),
   image: z.any().optional(),
-  category: z.literal("Job Posting"),
 })
 
 export const RealEstateFormSchema = z.object({
@@ -93,7 +92,7 @@ export const RealEstateFormSchema = z.object({
     message: "Price must be a positive number.",
   }),
   image: z.any(),
-  category: z.array(z.string()).nonempty({
-    message: "Please select a category.",
+  propertyType: z.array(z.string()).nonempty({
+    message: "Please select a property.",
   }),
 })

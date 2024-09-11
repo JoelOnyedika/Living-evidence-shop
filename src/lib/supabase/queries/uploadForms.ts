@@ -50,116 +50,120 @@ export const uploadImages = async (
 };
 
 
-
-export const uploadEcommerceForm = async (formData: FormData, userId: string) => {
-    try {
-        const supabase = await createClient()
-        const productId = uuidv4()
-        const price = parseFloat(formData.get('price') as string);
-        const title = formData.get('title') as string;
-        const description = formData.get('description') as string;
-        const category = formData.get('category') as string;
-        const base64Image = formData.get('image') as string;
-
-        // Convert base64 to file
-        const imageFile = await fetch(base64Image).then(res => res.blob());
-        const fileName = `${productId}-image.jpg`; // You might want to use a more specific extension
-
-        // Upload image to Supabase storage
-        const { data: imageData, error: imageError } = await supabase
-            .storage
-            .from('projectImages')
-            .upload(`ecommerce/${userId}/${fileName}`, imageFile);
-
-        if (imageError) {
-            console.log(imageError);
-            return { data: null, error: { message: "Failed to upload image" } };
-        }
-
-        // Get public URL of the uploaded image
-        const { data: { publicUrl } } = supabase
-            .storage
-            .from('projectImages')
-            .getPublicUrl(`ecommerce/${userId}/${fileName}`);
-
-        // Insert product data into the database
-        const { data, error } = await supabase
-            .from('ecommerce_products')
-            .insert({ id: productId, user_id: userId, price, title, description, category, image: publicUrl });
-
-        if (error) {
-            console.log(error)
-            return { data: null, error: { message: error.message } }
-        }
-
-        return { data: data, error: null }
-    } catch (error) {
-        console.log(error)
-        return { data: null, error: { message: "Whoops something went wrong. Please refresh..." } }
-    }
-}
+// HAD TO REMOVE ALL OF THESE CODES BECALUSE THE LOGIC IS BEING HANDLED
+// IN THE API/ROUTES.... FOLDERS
 
 
-export const uploadRealEstateForm = async (formData: any, userId: any) => {
-  try {
-    const supabase = await createClient();
-    const myId = uuidv4();
-    const { description, price, location, title, propertyType, image } =
-      formData;
-    const { data, error }: any = supabase
-      .from("real_estate_listings")
-      .insert({
-        id: myId,
-        user_id: userId,
-        price,
-        title,
-        description,
-        location,
-        image,
-        property_type: propertyType,
-      });
-    if (error) {
-      console.log(error);
-      return { data: null, error: { message: error.message } };
-    }
-    console.log(data);
-    return { data: data, error: null };
-  } catch (error) {
-    console.log(error);
-    return {
-      data: null,
-      error: { message: "Whoops something went wrong. Please refresh..." },
-    };
-  }
-};
-export const uploadJobForm = async (formData: any, userId: any) => {
-  try {
-    const supabase = await createClient();
-    const myId = uuidv4();
-    const { description, salary, location, title, jobType, image } = formData;
-    const { data, error }: any = supabase
-      .from("job_postings")
-      .insert({
-        id: myId,
-        user_id: userId,
-        salary,
-        title,
-        description,
-        location,
-        image,
-        job_type: jobType,
-      });
-    if (error) {
-      console.log(error);
-      return { data: null, error: { message: error.message } };
-    }
-    console.log(data);
-    return { data: data, error: null };
-  } catch (error) {
-    console.log(error);
-    return {
-      data: null,
-      error: { message: "Whoops something went wrong. Please refresh..." },
-    };
-  }
-};
+// export const uploadEcommerceForm = async (formData: FormData, userId: string) => {
+//   try {
+//       const supabase = await createClient()
+//       const productId = uuidv4()
+//       const price = parseFloat(formData.get('price') as string);
+//       const title = formData.get('title') as string;
+//       const description = formData.get('description') as string;
+//       const category = formData.get('category') as string;
+//       const imageFile = formData.get('image') as File | null;
+
+//       let imageUrl = '';
+
+//       if (imageFile) {
+//           const fileExt = imageFile.name.split('.').pop();
+//           const fileName = `${productId}.${fileExt}`;
+//           const filePath = `ecommerce/${userId}/${fileName}`;
+
+//           const { data: uploadData, error: uploadError } = await supabase.storage
+//               .from('projectImages')
+//               .upload(filePath, imageFile);
+
+//           if (uploadError) {
+//               console.log(uploadError);
+//               return { data: null, error: { message: "Failed to upload image" } };
+//           }
+
+//           const { data: { publicUrl } } = supabase.storage
+//               .from('projectImages')
+//               .getPublicUrl(filePath);
+
+//           imageUrl = publicUrl;
+//       }
+
+//       const { data, error } = await supabase
+//           .from('ecommerce_products')
+//           .insert({ id: productId, user_id: userId, price, title, description, category, image: imageUrl });
+
+//       if (error) {
+//           console.log(error)
+//           return { data: null, error: { message: error.message } }
+//       }
+
+//       return { data: data, error: null }
+//   } catch (error) {
+//       console.log(error)
+//       return { data: null, error: { message: "Whoops something went wrong. Please refresh..." } }
+//   }
+// }
+
+
+// export const uploadRealEstateForm = async (formData: any, userId: any) => {
+//   try {
+//     const supabase = await createClient();
+//     const myId = uuidv4();
+//     const { description, price, location, title, propertyType, image } =
+//       formData;
+//     const { data, error }: any = supabase
+//       .from("real_estate_listings")
+//       .insert({
+//         id: myId,
+//         user_id: userId,
+//         price,
+//         title,
+//         description,
+//         location,
+//         image,
+//         property_type: propertyType,
+//       });
+//     if (error) {
+//       console.log(error);
+//       return { data: null, error: { message: error.message } };
+//     }
+//     console.log(data);
+//     return { data: data, error: null };
+//   } catch (error) {
+//     console.log(error);
+//     return {
+//       data: null,
+//       error: { message: "Whoops something went wrong. Please refresh..." },
+//     };
+//   }
+// };
+// export const uploadJobForm = async (formData: any, userId: any) => {
+//   try {
+//     const supabase = await createClient();
+//     const myId = uuidv4();
+//     const { description, salary, location, title, jobType, image } = formData;
+//     const { data, error }: any = supabase
+//       .from("job_postings")
+//       .insert({
+//         id: myId,
+//         user_id: userId,
+//         salary,
+//         title,
+//         description,
+//         location,
+//         image,
+//         job_type: jobType,
+//       });
+//     if (error) {
+//       console.log(error);
+//       return { data: null, error: { message: error.message } };
+//     }
+//     console.log(data);
+//     return { data: data, error: null };
+//   } catch (error) {
+//     console.log(error);
+//     return {
+//       data: null,
+//       error: { message: "Whoops something went wrong. Please refresh..." },
+//     };
+//   }
+// };

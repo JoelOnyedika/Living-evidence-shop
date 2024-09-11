@@ -13,8 +13,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import PopupMessage from "@/components/global/Popup";
-import { useRouter } from "next/router";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { z } from "zod";
 import { uploadRealEstateForm } from "@/lib/supabase/queries/uploadForms";
@@ -27,6 +26,10 @@ const RealEstateForm = (updateData=[]) => {
     mode: null,
     show: false,
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const params = useParams()
 
   const showPopup = (message: string, mode: string | null) => {
     setPopup({ show: true, message, mode });
@@ -41,28 +44,42 @@ const RealEstateForm = (updateData=[]) => {
     resolver: zodResolver(RealEstateFormSchema),
   });
 
-  async function onSubmit(formData: z.infer<typeof RealEstateFormSchema>) {
-    console.log(formData);
+  
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('userId', params.id); // Replace with actual user ID
+    formData.append('title', data.title);
+    formData.append('location', data.location);
+    formData.append('description', data.description);
+    formData.append('price', data.price.toString());
+    formData.append('propertyType', data.propertyType);
+    formData.append('image', data.image);
+  
     try {
-      const { id } = useParams();
-      const router = useRouter();
-      const { data, error } = await uploadRealEstateForm(formData, id);
-      if (error) {
-        console.log(error);
-        setPopup({ message: error.message, mode: "error", show: true });
-      }
-      console.log(data);
-      return router.push(`/dashboard/${id}/listings`);
-    } catch (error) {
-      console.log(error);
-      setPopup({
-        message: "Whoops something went wrong",
-        mode: "error",
-        show: true,
+      const response = await fetch('/api/upload/ecommerce', {
+        method: 'POST',
+        body: formData,
       });
+  
+      if (!response.ok) {
+        setPopup({ message: 'Failed to upload', mode: 'error', show: true });
+        console.log(response);
+      }
+  
+      const result = await response.json();
+      console.log(result);
+      router.push(`/buy/${result.productId}`);
+    } catch (error) {
+      console.error('Error:', error);
+      setPopup({ message: 'Whoops, something went wrong', mode: 'error', show: true });
+    } finally {
+      setIsSubmitting(false);
     }
-  }
-  const isSubmitting = form.formState.isSubmitting;
+  };
+  
+
+
   return (
     <>
       {popup.show && (
@@ -81,7 +98,7 @@ const RealEstateForm = (updateData=[]) => {
           }}
         />
       )}
-      <form className="grid gap-4">
+      <form className="grid gap-4" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid gap-2 py-5">
           <Label htmlFor="title">Title</Label>
           <Input
@@ -159,7 +176,7 @@ const RealEstateForm = (updateData=[]) => {
           <Input id="image" type="file" />
           {form.formState.errors.image && (
             <small className="text-red-500">
-              {/* {form.formState.errors.image.message} */}
+              {form.formState.errors.image.message}
             </small>
           )}
         </div>
