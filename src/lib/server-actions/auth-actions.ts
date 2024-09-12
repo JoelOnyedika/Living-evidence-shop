@@ -166,7 +166,7 @@ export async function createSessionCookie(email = null) {
   }
 }
 
-export const getCookie = async (cookieName) => {
+export const getCookie =async  (cookieName) => {
   return cookies().get(cookieName)
 }
 

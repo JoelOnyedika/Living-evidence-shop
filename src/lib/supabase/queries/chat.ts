@@ -77,6 +77,20 @@ export async function createChat(userId: string, productId: string, productType:
 
 export async function fetchOrCreateChat(sellerId: string, buyerId: string, productId: string, productType: string) {
   // First, try to fetch an existing chat
+  console.log(sellerId, buyerId, productId)
+  // SINCE THE BUYER ID IS GOTTEN FROM THE LOCALSTORAGE IF THE BUYUER ID IS UNDEFINED
+  // WELL I REDIRECT THE USER BACK TO THE PRODUCT PAGE 
+  if (sellerId == null || buyerId == null) {
+    console.log('Seller ID or buyer id is null or undefined, redirecting');
+    return { 
+      data: { 
+        redirect: true,
+        type: productType,
+        id: productId
+      }, 
+      error: null
+    };
+  }
   const supabase = await createClient()
   let { data: existingChat, error: fetchError } = await supabase
     .from('chat')
@@ -86,9 +100,11 @@ export async function fetchOrCreateChat(sellerId: string, buyerId: string, produ
     .eq('product_id', productId)
     .single();
 
+
   if (fetchError && fetchError.code !== 'PGRST116') {
     // PGRST116 is the error code for "no rows returned"
-    return {data: null, error: {message: `Error creating chat: ${createError.message}`}};
+    console.log('i',fetchError)
+    return {data: null, error: {message: `Error creating chat: ${fetchError.message}`}};
   }
 
   if (existingChat) {
@@ -105,6 +121,7 @@ export async function fetchOrCreateChat(sellerId: string, buyerId: string, produ
     .single();
 
   if (createError) {
+    console.log('j',createError)
     return {data: null, error: {message: `Error creating chat: ${createError.message}`}};
   }
 

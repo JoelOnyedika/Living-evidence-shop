@@ -26,6 +26,8 @@ export default function RealEstate({data}: any) {
   // On the product page
 const handleContactSeller = () => {
   localStorage.setItem('currentSellerId', data.user_id);
+  console.log(localStorage.getItem('currentSellerId'))
+
   router.push(`/buy/${data.type}/${data.id}/${chatId}/chat`)
 };
 

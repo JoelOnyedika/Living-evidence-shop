@@ -22,6 +22,7 @@ import { IPopupMessage } from "@/lib/types";
 import Ecommerce from "@/components/Buy/Ecommerce";
 import PopupMessage from "@/components/global/Popup";
 import RealEstate from "@/components/Buy/RealEstate";
+import Loader from "@/components/global/loader";
 
 export default function Buy() {
   const [popup, setPopup] = useState<IPopupMessage>({
@@ -34,6 +35,7 @@ export default function Buy() {
   
   // Fetch product data function
   const fetchProductsData = async (id, type) => {
+    console.log(id, type)
     const { data, error }: any = await getProductsDataById(id, type);
     if (error) {
       console.log(error);
@@ -83,7 +85,11 @@ export default function Buy() {
         />
       )}
       {productData === null ? (
-        <Loader2 />
+       <div className="flex justify-center items-center h-full w-full">
+       <div className="transform scale-150">
+         <Loader />
+       </div>
+     </div>
       ) : productData.map((data, index) => (
         data.type === "ecommerce" ? (
           <Ecommerce productData={data} key={index} />

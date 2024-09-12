@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase';
 import { v4 } from 'uuid';
 
 export const getProductsDataById = async (id: any, type: any) => {
+    console.log(id, type)
     try {
         const supabase = await createClient();
         var table = null
@@ -10,7 +11,7 @@ export const getProductsDataById = async (id: any, type: any) => {
             table = 'ecommerce_products'
         } else if (type === 'job') {
             table = 'job_postings'
-        } else if (type === 'realestate') {
+        } else if (type === 'realEstate') {
             table = 'real_estate_listings'
         }
      
