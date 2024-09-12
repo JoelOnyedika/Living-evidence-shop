@@ -10,12 +10,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Bed, Bath, Square, MapPin, DollarSign } from 'lucide-react'
+import Link from 'next/link'
+import { v4 as uuidV4 } from 'uuid'
+import { useRouter } from 'next/navigation'
 
 
-export default function RealEstate({data}) {
+export default function RealEstate({data}: any) {
   const image = JSON.parse(data.image);
+  const chatId = uuidV4()
+  const router = useRouter()
 
   console.log(data)
+
+
+  // On the product page
+const handleContactSeller = () => {
+  localStorage.setItem('currentSellerId', data.user_id);
+  router.push(`/buy/${data.type}/${data.id}/${chatId}/chat`)
+};
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -54,24 +66,9 @@ export default function RealEstate({data}) {
               <p className="text-sm text-muted-foreground">{data.description}</p>
             </CardContent>
           </Card>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="w-full">Contact Seller</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Contact the Seller</DialogTitle>
-              </DialogHeader>
-              <form className="space-y-4">
-                <Input placeholder="Your Name" />
-                <Input placeholder="Your Email" type="email" />
-                <Input placeholder="Your Phone" type="tel" />
-                <Textarea placeholder="Your Message" />
-                <Button type="submit" className="w-full">Send Message</Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              <Button className="w-full" onClick={() => handleContactSeller()}>
+                Contact Seller
+              </Button>
         </div>
       </div>
     </div>

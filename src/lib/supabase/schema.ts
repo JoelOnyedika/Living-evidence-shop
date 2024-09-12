@@ -170,7 +170,8 @@ export const dashboard = pgTable('dashboard', {
 
 export const chat = pgTable('chat', {
   id: uuid('id').primaryKey().notNull(),
-  userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
+  buyerId: uuid('buyer_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
+  sellerId: uuid('seller_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
   productId: uuid('product_id').notNull(),
   productType: text('product_type').notNull(),
   messages: jsonb('messages').notNull().default('[]'),

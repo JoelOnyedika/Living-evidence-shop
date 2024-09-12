@@ -43,6 +43,13 @@
       "when": 1726046065083,
       "tag": "0005_bumpy_ares",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1726146991646,
+      "tag": "0006_clear_rhodey",
+      "breakpoints": true
     }
   ]
 }

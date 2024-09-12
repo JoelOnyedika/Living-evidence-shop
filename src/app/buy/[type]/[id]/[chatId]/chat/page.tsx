@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { SendIcon, PhoneIcon, VideoIcon } from "lucide-react"
 import { fetchMessages, addMessage, createChat } from '@/app/actions/chatActions'
+import { useParams } from 'next/navigation'
+import { getUserDataById } from '@/lib/supabase/queries/auth';
+import { getCookie } from '@/lib/server-actions/auth-actions';
+import { fetchOrCreateChat } from '@/lib/supabase/queries/chat';
+import Navbar from '@/components/Hero/Navbar';
+import PopupMessage from '@/components/global/Popup';
+import { IPopupMessage } from '@/lib/types';
 
 const CONTACT_INFO_REGEX = /(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b|\b(?:https?:\/\/)?(?:www\.)?(?:facebook|fb|twitter|instagram|linkedin)\.com\/[A-Za-z0-9_.-]+\b/g;
 
@@ -30,57 +37,109 @@ function InsightBot({ message }) {
   );
 }
 
-export default function ChatPage({ chatId, userId, productId, productType }) {
+export default function ChatPage() {
+  const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
+  const { type, id, chatId } = useParams()
+
+  const [popup, setPopup] = useState<IPopupMessage>({
+    message: "",
+    mode: null,
+    show: false,
+  });
 
   useEffect(() => {
-    async function loadMessages() {
+    const cookie = getCookie('userCookie')
+    const parsedCookie = JSON.parse(cookie.value)
+    const buyerId = parsedCookie.id
+    const sellerId = localStorage.getItem('currentSellerId');
+    console.log('sellerId', sellerId)
+
+    async function initializeChat() {
       try {
-        if (chatId) {
-          const fetchedMessages = await fetchMessages(chatId);
-          setMessages(fetchedMessages);
+        const { data, error } = await fetchOrCreateChat(sellerId, buyerId, id, type);
+        if (error) {
+          console.log(error)
+          setPopup({ message: error.message, mode: 'error', show: true })
         }
+        setChat(data);
+        setMessages(data.messages);
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error initializing chat:', error);
+        setPopup({ message: 'Error initializing chat interface.', mode: 'error', show: true })
       }
     }
-    loadMessages();
-  }, [chatId]);
+    initializeChat();
 
-  async function handleSendMessage(e) {
-    e.preventDefault();
-    if (!inputMessage.trim()) return;
+    // async function loadMessages() {
+    //   try {
+    //     if (productId) {
+    //       const fetchedMessages = await fetchMessages(productId);
+    //       setMessages(fetchedMessages);
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching messages:', error);
+    //   }
+    // }
+    // loadMessages();
+  }, []);
 
-    const filteredMessage = filterMessage(inputMessage);
+  // async function handleSendMessage(e) {
+  //   e.preventDefault();
+  //   if (!inputMessage.trim()) return;
 
-    try {
-      let newMessage;
-      if (!chatId) {
-        const newChat = await createChat(userId, productId, productType, filteredMessage);
-        chatId = newChat.id;
-        newMessage = newChat.messages[0];
-      } else {
-        newMessage = await addMessage(chatId, filteredMessage, 'user');
-      }
+  //   const filteredMessage = filterMessage(inputMessage);
+
+  //   try {
+  //     let newMessage;
+  //     if (!chatId) {
+  //       const newChat = await createChat(userId, productId, productType, filteredMessage);
+  //       chatId = newChat.id;
+  //       newMessage = newChat.messages[0];
+  //     } else {
+  //       newMessage = await addMessage(chatId, filteredMessage, 'user');
+  //     }
       
-      setMessages(prevMessages => [...prevMessages, newMessage]);
-      setInputMessage('');
+  //     setMessages(prevMessages => [...prevMessages, newMessage]);
+  //     setInputMessage('');
 
-      if (containsContactInfo(inputMessage)) {
-        const insightMessage = await addMessage(
-          chatId,
-          "Please do not share contact information in the chat.",
-          'insight'
-        );
-        setMessages(prevMessages => [...prevMessages, insightMessage]);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  }
+  //     if (containsContactInfo(inputMessage)) {
+  //       const insightMessage = await addMessage(
+  //         chatId,
+  //         "Please do not share contact information in the chat.",
+  //         'insight'
+  //       );
+  //       setMessages(prevMessages => [...prevMessages, insightMessage]);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending message:', error);
+  //   }
+  // }
+
+  const hidePopup = () => {
+    setPopup({ show: false, message: "", mode: "" });
+  };
 
   return (
+    <>
+    <Navbar />
+      {popup.show && (
+        <PopupMessage
+          message={popup.message}
+          mode={popup.mode}
+          onClose={hidePopup}
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            zIndex: 9999,
+            backgroundColor: "red",
+            color: "white",
+            padding: "10px",
+          }}
+        />
+      )}
     <div className="flex flex-col h-screen bg-gray-100 p-4 md:p-6 lg:p-8">
       <Card className="flex flex-col h-full max-w-4xl mx-auto">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -143,5 +202,6 @@ export default function ChatPage({ chatId, userId, productId, productType }) {
         </CardFooter>
       </Card>
     </div>
+    </>
   )
 }
