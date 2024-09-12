@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { SendIcon, PhoneIcon, VideoIcon } from "lucide-react"
+import { SendIcon, PhoneIcon, VideoIcon, Image, Video, Send } from "lucide-react"
 import { fetchMessages, addMessage, createChat } from '@/lib/supabase/queries/chat'
 import { useParams } from 'next/navigation'
 import { getUserDataById } from '@/lib/supabase/queries/auth';
@@ -148,7 +148,7 @@ export default function ChatPage() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-r from-blue-100 to-purple-100">
       <Navbar />
       {popup.show && (
         <PopupMessage
@@ -166,31 +166,23 @@ export default function ChatPage() {
           }}
         />
       )}
-      <div className="flex flex-col h-screen bg-gray-100 p-4 md:p-6 lg:p-8">
-        <Card className="flex flex-col h-full max-w-4xl mx-auto">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div className="flex items-center space-x-4">
-              <Avatar>
-                <AvatarImage src="/placeholder.svg?height=40&width=40" alt="Buyer" />
-                <AvatarFallback>B</AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle>John Doe (Buyer)</CardTitle>
-                <p className="text-sm text-muted-foreground">Online</p>
+      <div className="container mx-auto px-4 py-8">
+        <Card className="w-full max-w-4xl mx-auto shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src="/placeholder.svg?height=40&width=40" alt="Buyer" />
+                  <AvatarFallback>B</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-xl font-bold">John Doe (Buyer)</h2>
+                  <p className="text-sm opacity-75">Online</p>
+                </div>
               </div>
             </div>
-            <div className="flex space-x-2">
-              <Button size="icon" variant="ghost">
-                <PhoneIcon className="h-5 w-5" />
-                <span className="sr-only">Call</span>
-              </Button>
-              <Button size="icon" variant="ghost">
-                <VideoIcon className="h-5 w-5" />
-                <span className="sr-only">Video call</span>
-              </Button>
-            </div>
           </CardHeader>
-          <CardContent className="flex-grow overflow-hidden">
+          <CardContent className="h-[60vh] p-4">
             <ScrollArea className="h-full pr-4">
               <div className="space-y-4">
                 {isLoading ? (
@@ -203,25 +195,25 @@ export default function ChatPage() {
                       <InsightBot key={message.id} message={message.content} />
                     ) : (
                       <div key={message.id} className={`flex items-end ${message.sender === 'user' ? 'justify-end' : ''}`}>
-                        <Avatar className={message.sender === 'user' ? 'ml-2' : 'mr-2'}>
+                        <div className={`${message.sender === 'user' ? 'order-2' : ''} max-w-[80%] ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 shadow`}>
+                          <p>{message.content}</p>
+                        </div>
+                        <Avatar className={`${message.sender === 'user' ? 'order-1 ml-2' : 'mr-2'}`}>
                           <AvatarImage src="/placeholder.svg?height=40&width=40" alt={message.sender} />
                           <AvatarFallback>{message.sender[0].toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <div className={`${message.sender === 'user' ? 'bg-secondary text-secondary-foreground' : 'bg-primary text-primary-foreground'} rounded-lg p-3 max-w-[80%]`}>
-                          <p>{message.content}</p>
-                        </div>
                       </div>
                     )
                   ))
                 ) : (
                   <div className="flex justify-center items-center h-full">
-                    <p>No messages yet. Start a conversation!</p>
+                    <p className="text-gray-500">No messages yet. Start a conversation!</p>
                   </div>
                 )}
               </div>
             </ScrollArea>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="bg-gray-100 rounded-b-lg">
             <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
               <Input 
                 type="text" 
@@ -230,14 +222,24 @@ export default function ChatPage() {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
               />
-              <Button type="submit" size="icon">
-                <SendIcon className="h-5 w-5" />
-                <span className="sr-only">Send message</span>
-              </Button>
+              <div className="flex space-x-2">
+                <Button type="button" size="icon" variant="outline" onClick={() => handleAttachmentClick('image')}>
+                  <Image className="h-5 w-5" />
+                  <span className="sr-only">Attach Image</span>
+                </Button>
+                <Button type="button" size="icon" variant="outline" onClick={() => handleAttachmentClick('video')}>
+                  <Video className="h-5 w-5" />
+                  <span className="sr-only">Attach Video</span>
+                </Button>
+                <Button type="submit" size="icon" className="bg-blue-500 hover:bg-blue-600 text-white">
+                  <Send className="h-5 w-5" />
+                  <span className="sr-only">Send message</span>
+                </Button>
+              </div>
             </form>
           </CardFooter>
         </Card>
       </div>
-    </>
+    </div>
   )
 }
