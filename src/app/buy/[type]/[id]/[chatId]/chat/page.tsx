@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { SendIcon, PhoneIcon, VideoIcon, Image, Video, Send } from "lucide-react"
-import { fetchMessages, addMessage, createChat } from '@/lib/supabase/queries/chat'
+import { fetchMessages, sendMessage, createChat, subscribeToChat } from '@/lib/supabase/queries/chat'
 import { useParams } from 'next/navigation'
 import { getUserDataById } from '@/lib/supabase/queries/auth';
 import { getCookie } from '@/lib/server-actions/auth-actions';
@@ -16,6 +16,8 @@ import Navbar from '@/components/Hero/Navbar';
 import PopupMessage from '@/components/global/Popup';
 import { IPopupMessage } from '@/lib/types';
 import { useRouter } from 'next/navigation'
+import { useSupabaseChat } from '@/lib/supabase/hooks/useSupabaseChat';
+
 
 const CONTACT_INFO_REGEX = /(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b|\b(?:https?:\/\/)?(?:www\.)?(?:facebook|fb|twitter|instagram|linkedin)\.com\/[A-Za-z0-9_.-]+\b/g;
 
@@ -41,9 +43,11 @@ function InsightBot({ message }) {
 export default function ChatPage() {
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  // const [newMessage, setNewMessage] = useState('') 
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [buyerId, setBuyerId] = useState(null);
+  const [cookie, setCookie] = useState(null)
   const { type, id, chatId } = useParams()
   const router = useRouter()
 
@@ -52,31 +56,25 @@ export default function ChatPage() {
     mode: null,
     show: false,
   });
-  
-  async function initializeChat(sellerId: string, buyerId: string, id: string, type: string) {
-    try {
-      setIsLoading(true);
-      console.log('Initializing chat with:', { sellerId, buyerId, id, type });
-      const { data, error } = await fetchOrCreateChat(sellerId, buyerId, id, type);
-      if (data && data.redirect) {
-        console.log('Redirecting to:', `/buy/${data.type}/${data.id}`);
-        router.push(`/buy/${data.type}/${data.id}`);
-        return;
-      }
-      if (error) {
-        console.error('Error in fetchOrCreateChat:', error);
-        setPopup({ message: error.message, mode: 'error', show: true });
-        return;
-      }
-      setChat(data);
-      setMessages(data.messages || []); // Ensure messages is always an array
-    } catch (error) {
-      console.error('Error initializing chat:', error);
-      setPopup({ message: 'Error initializing chat interface.', mode: 'error', show: true });
-    } finally {
-      setIsLoading(false);
+
+  const {messages: msg, error} = useSupabaseChat(chatId)
+
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (msg) {
+      setMessages(msg);
+      console.log('Messages updated:', msg);
+      scrollToBottom()
+      // Perform any additional actions you need when messages update
     }
-  }
+  }, [msg]);
+  
 
   useEffect(() => {
     async function setupChat() {
@@ -85,10 +83,11 @@ export default function ChatPage() {
         if (!cookieData) {
           console.error('No user cookie found');
           setPopup({ message: 'User not authenticated', mode: 'error', show: true });
-          rotuer.push('/login')
+          router.push('/login')
           return;
         }
         const userCookie = JSON.parse(cookieData.value);
+        setCookie(userCookie)
         console.log('User cookie:', userCookie);
         
         if (!userCookie || !userCookie.id) {
@@ -108,40 +107,69 @@ export default function ChatPage() {
           return;
         }
 
-        await initializeChat(sellerId, userCookie.id, id, type);
+        const { data: chatData, error: chatError } = await fetchOrCreateChat(sellerId, userCookie.id, id, type, chatId);
+        if (chatError) {
+          console.error('Error fetching or creating chat:', chatError);
+          setPopup({ message: chatError.message, mode: 'error', show: true });
+          return;
+        }
+
+        if (chatData.redirect) {
+          router.push(`/buy/${chatData.type}/${chatData.id}`);
+          return;
+        }
+
+        setChat(chatData);
+        setIsLoading(false);
+
+        const { messages, error: messagesError } = await fetchMessages(chatData.id);
+        if (messagesError) {
+          console.error('Error fetching messages:', messagesError);
+          setPopup({ message: messagesError.message, mode: 'error', show: true });
+        } else {
+          setMessages(messages || []);
+        }
+
+        console.log(messages)
       } catch (error) {
         console.error('Error in setupChat:', error);
         setPopup({ message: 'Error setting up chat', mode: 'error', show: true });
       }
     }
-
+    
     setupChat();
-  }, [id, type]);
 
-  async function handleSendMessage(e) {
-    e.preventDefault();
-    if (!inputMessage.trim()) return;
 
-    const filteredMessage = filterMessage(inputMessage);
+  }, [id, type, router]);
+
+  const handleSendMessage = async (e) => {
+    console.log(inputMessage)
+    e.preventDefault()
+    if (!inputMessage.trim()) return
+    const isViolation = containsContactInfo(inputMessage)
+    console.log('violation', isViolation)
+    if (isViolation) {
+      setMessages([...messages, {
+        id: Date.now(),
+        sender: 'insight',
+        content: "You are violating our rule. Please do not share any contact info, whatsoever",
+        timestamp: new Date().toISOString()
+      }]);
+      setInputMessage('')
+      return;
+    }
 
     try {
-      let newMessage = await addMessage(chatId, filteredMessage, 'user');
-      
-      setMessages(prevMessages => [...prevMessages, newMessage]);
+      const { success, error } = await sendMessage(chatId, cookie.id, inputMessage);
+      console.log(success, error)
+      if (error) setPopup({ message: error.message, mode: 'error', show: true });
       setInputMessage('');
-
-      if (containsContactInfo(inputMessage)) {
-        const insightMessage = await addMessage(
-          chatId,
-          "Please do not share contact information in the chat.",
-          'insight'
-        );
-        setMessages(prevMessages => [...prevMessages, insightMessage]);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
+      setPopup({ message: error.message, mode: 'error', show: true });
     }
   }
+
 
   const hidePopup = () => {
     setPopup({ show: false, message: "", mode: "" });
@@ -195,13 +223,13 @@ export default function ChatPage() {
                       <InsightBot key={message.id} message={message.content} />
                     ) : (
                       <div key={message.id} className={`flex items-end ${message.sender === 'user' ? 'justify-end' : ''}`}>
-                        <div className={`${message.sender === 'user' ? 'order-2' : ''} max-w-[80%] ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 shadow`}>
-                          <p>{message.content}</p>
-                        </div>
                         <Avatar className={`${message.sender === 'user' ? 'order-1 ml-2' : 'mr-2'}`}>
                           <AvatarImage src="/placeholder.svg?height=40&width=40" alt={message.sender} />
                           <AvatarFallback>{message.sender[0].toUpperCase()}</AvatarFallback>
                         </Avatar>
+                        <div className={`${message.sender === 'user' ? 'order-2' : ''} max-w-[80%] ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 shadow`}>
+                          <p>{message.content}</p>
+                        </div>
                       </div>
                     )
                   ))
@@ -211,6 +239,7 @@ export default function ChatPage() {
                   </div>
                 )}
               </div>
+              <div ref={messagesEndRef} />
             </ScrollArea>
           </CardContent>
           <CardFooter className="bg-gray-100 rounded-b-lg">
@@ -231,7 +260,7 @@ export default function ChatPage() {
                   <Video className="h-5 w-5" />
                   <span className="sr-only">Attach Video</span>
                 </Button>
-                <Button type="submit" size="icon" className="bg-blue-500 hover:bg-blue-600 text-white">
+                <Button type="submit" size="icon" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={(e) => handleSendMessage(e)}>
                   <Send className="h-5 w-5" />
                   <span className="sr-only">Send message</span>
                 </Button>

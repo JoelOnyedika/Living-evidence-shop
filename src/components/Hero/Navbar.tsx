@@ -132,9 +132,9 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent>
               <nav className="items-left gap-6 flex flex-col">
-                {navbarLinks.map((data) => (
+                {navbarLinks.map((data, index) => (
                   (data.isDynamic && !cookie) ? null : (
-                    <div className="flex gap-3">
+                    <div className="flex gap-3" key={index}>
                       <data.icon />
                       <span
                       key={data.id}

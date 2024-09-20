@@ -1,129 +1,146 @@
-// app/actions/chatActions.ts
 'use server'
 
-import {createClient} from '@/lib/supabase'
-import {v4 as uuidV4} from 'uuid'
+import { createClient } from '@/lib/supabase'
+import { v4 as uuidV4 } from 'uuid'
+import { getCookie } from '@/lib/server-actions/auth-actions'
 
-export async function fetchMessages(productId: string) {
-    const supabase = await createClient()
-    const randId = uuidV4()
-  const { data, error } = await supabase
-    .from('chat')
-    .select('messages')
-    .eq('product_id', productId)
-    .single();
+export async function fetchOrCreateChat(sellerId, buyerId, productId, productType, chatId) {
+  const supabase = await createClient()
 
-  if (error) {
-    return { data: null, error: { message: error.message } }
-  };
-  return {data, error}
-}
-
-export async function addMessage(chatId: string, content: string, sender: string) {
-    const supabase = await createClient()
-    const randId = uuidV4()
-  const newMessage = {
-    id: randId,
-    content,
-    sender,
-    created_at: new Date().toISOString()
-  };
-
-  const { data, error } = await supabase
-    .from('chat')
-    .update({ 
-      messages: supabase.sql`array_append(messages, ${newMessage}::jsonb)`,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', chatId)
-    .select('messages')
-    .single();
-
-  if (error) {
-    return { data: null, error: { message: error.message } }
-  };
-  return {data, error};
-}
-
-export async function createChat(userId: string, productId: string, productType: string, initialMessage: string) {
-    const supabase = await createClient()
-    const randId = uuidV4()
-  const newChat = {
-    id: randId,
-    userId,
-    productId,
-    productType,
-    messages: [{
-      id: randId,
-      content: initialMessage,
-      sender: 'user',
-      created_at: new Date().toISOString()
-    }],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
-  const { data, error } = await supabase
-    .from('chat')
-    .insert(newChat)
-    .select()
-    .single();
-
-  if (error) {
-    return { data: null, error: { message: error.message } }
-  };
-  return {data, error};
-}
-
-export async function fetchOrCreateChat(sellerId: string, buyerId: string, productId: string, productType: string) {
-  // First, try to fetch an existing chat
-  console.log(sellerId, buyerId, productId)
-  // SINCE THE BUYER ID IS GOTTEN FROM THE LOCALSTORAGE IF THE BUYUER ID IS UNDEFINED
-  // WELL I REDIRECT THE USER BACK TO THE PRODUCT PAGE 
   if (sellerId == null || buyerId == null) {
     console.log('Seller ID or buyer id is null or undefined, redirecting');
-    return { 
-      data: { 
+    return {
+      data: {
         redirect: true,
         type: productType,
         id: productId
-      }, 
+      },
       error: null
     };
   }
-  const supabase = await createClient()
+
   let { data: existingChat, error: fetchError } = await supabase
     .from('chat')
     .select('*')
     .eq('buyer_id', buyerId)
     .eq('seller_id', sellerId)
     .eq('product_id', productId)
+    .eq('id', chatId)
     .single();
 
-
   if (fetchError && fetchError.code !== 'PGRST116') {
-    // PGRST116 is the error code for "no rows returned"
-    console.log('i',fetchError)
-    return {data: null, error: {message: `Error creating chat: ${fetchError.message}`}};
+    console.log('Error fetching chat:', fetchError)
+    return { data: null, error: { message: `Error fetching chat: ${fetchError.message}` } };
   }
 
   if (existingChat) {
-    return {data: existingChat, error: null};
+    return { data: existingChat, error: null };
   }
-
-  // If no existing chat, create a new one
-  const randUUID = uuidV4()
 
   const { data: createdChat, error: createError } = await supabase
     .from('chat')
-    .insert({ id: randUUID, buyer_id: buyerId, product_id: productId, product_type: productType, messages: [], seller_id: sellerId })
+    .insert({ id: chatId, buyer_id: buyerId, product_id: productId, product_type: productType, messages: [], seller_id: sellerId })
     .select()
     .single();
 
   if (createError) {
-    console.log('j',createError)
-    return {data: null, error: {message: `Error creating chat: ${createError.message}`}};
+    console.log('Error creating chat:', createError)
+    return { data: null, error: { message: `Error creating chat: ${createError.message}` } };
   }
 
   return { data: createdChat, error: null }
+}
+
+export async function sendMessage(chatId, senderId, content) {
+  const supabase = await createClient()
+  console.log(senderId)
+
+  const { data, error } = await supabase
+    .from('chat')
+    .select('messages')
+    .eq('id', chatId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching chat:', error)
+    return { error: 'Failed to send message' }
+  }
+
+  console.log(data)
+
+  const updatedMessages = [
+    ...data.messages,
+    { id: Date.now(), sender: senderId, content, timestamp: new Date().toISOString() }
+  ]
+
+  const { error: updateError } = await supabase
+    .from('chat')
+    .update({ messages: updatedMessages, updated_at: new Date().toISOString() })
+    .eq('id', chatId)
+
+  if (updateError) {
+    console.error('Error updating chat:', updateError)
+    return { error: 'Failed to send message' }
+  }
+
+  return { success: true, message: 'Message sent successfully' }
+}
+
+
+export async function fetchMessages(chatId) {
+  const supabase = await createClient();
+
+  // Fetch messages
+  const { data: chatData, error: chatError } = await supabase
+    .from('chat')
+    .select('messages, buyer_id, seller_id')
+    .eq('id', chatId)
+    .single();
+
+  if (chatError) {
+    console.error('Error fetching messages:', chatError);
+    return { error: { message: 'Failed to fetch messages' } };
+  }
+
+  const { messages, buyer_id, seller_id } = chatData;
+
+  // Fetch user profiles
+  const { data: usersData, error: usersError } = await supabase
+    .from('detailed_profiles')
+    .select('basic_profile_id, profile_photo')
+    .in('basic_profile_id', [buyer_id, seller_id]);
+
+  if (usersError) {
+    console.error('Error fetching user profiles:', usersError);
+    return { error: { message: 'Failed to fetch user profiles' } };
+  }
+
+  if (usersData.length < 2) {
+    return { error: { message: 'Please log in, or do your KYC' } };
+  }
+
+  // Create a map of user IDs to profile pictures
+  const userProfilePictures = Object.fromEntries(
+    usersData.map(user => [user.basic_profile_id, user.profile_photo || ''])
+  );
+
+  // Add profile pictures to messages
+  const messagesWithProfilePictures = messages.map(message => ({
+    ...message,
+    profile_picture: userProfilePictures[message.sender] || ''
+  }));
+
+  return { messages: messagesWithProfilePictures };
+}
+
+
+export async function subscribeToChat(chatId) {
+  const supabase = await createClient()
+  
+  return supabase
+    .channel(`chat:${chatId}`)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat', filter: `id=eq.${chatId}` }, (payload) => {
+      return payload.new.messages
+    })
+    .subscribe()
 }

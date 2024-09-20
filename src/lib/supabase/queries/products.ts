@@ -11,7 +11,7 @@ export const getProductsDataById = async (id: any, type: any) => {
             table = 'ecommerce_products'
         } else if (type === 'job') {
             table = 'job_postings'
-        } else if (type === 'realEstate') {
+        } else if (type === 'realestate') {
             table = 'real_estate_listings'
         }
      
