@@ -146,17 +146,19 @@ export default function ChatPage() {
     console.log(inputMessage)
     e.preventDefault()
     if (!inputMessage.trim()) return
-    const isViolation = containsContactInfo(inputMessage)
-    console.log('violation', isViolation)
-    if (isViolation) {
-      setMessages([...messages, {
-        id: Date.now(),
-        sender: 'insight',
-        content: "You are violating our rule. Please do not share any contact info, whatsoever",
-        timestamp: new Date().toISOString()
-      }]);
-      setInputMessage('')
-      return;
+    if (type !== 'ecommerce') {
+      const isViolation = containsContactInfo(inputMessage)
+      console.log('violation', isViolation)
+      if (isViolation) {
+        setMessages([...messages, {
+          id: Date.now(),
+          sender: 'insight',
+          content: "You are violating our rule. Please do not share any contact info, whatsoever",
+          timestamp: new Date().toISOString()
+        }]);
+        setInputMessage('')
+        return;
+      }
     }
 
     try {

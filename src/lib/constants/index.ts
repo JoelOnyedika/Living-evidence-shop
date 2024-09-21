@@ -71,6 +71,7 @@ export const homepageDetails = [
 export const navbarLinks = [
   {id: 1, title: "Home", href: "/", icon: Home},
   {id: 3, title: "Sell", href: "/sell", isDynamic: true, icon: HandCoins},
+  {id: 3, title: "Jobs", href: "/jobs", isDynamic: true, icon: HandCoins},
   {id: 4, title: "How It Works", href: "/how-it-works", icon: Gem},
   {id: 5, title: "About Us", href: "/about", icon: Book},
   {id: 6, title: "Contact Us", href: "/contact", icon: Smile},

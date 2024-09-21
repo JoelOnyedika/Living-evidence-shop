@@ -4,22 +4,20 @@ import React, {useState}  from "react";
 import { Button } from "../ui/button";
 import { Bookmark } from "lucide-react";
 import Image from "next/image";
-import cam from "@/components/images/camera.png";
+import { useRouter  } from 'next/navigation'
+import { v4 as uuidV4 } from 'uuid'
 
 const Ecommerce = ({ productData }: any) => {
+  const router = useRouter()
+  const chatId = uuidV4()
   console.log("productData", productData);
-  function addToLocalStorage(key:string, newItem:string) {
-    // Get the existing list from local storage
-    const existingItems = JSON.parse(localStorage.getItem(key)) || [];
-  
-    // Add the new item to the list
-    existingItems.push(newItem);
-  
-    // Save the updated list back to local storage
-    localStorage.setItem(key, JSON.stringify(existingItems));
 
-    setIsAddedToCart(true)
-  }
+  const handleContactSeller = () => {
+    localStorage.setItem('currentSellerId', productData.user_id);
+    console.log(localStorage.getItem('currentSellerId'))
+  
+    router.push(`/buy/${productData.type}/${productData.id}/${chatId}/chat`)
+  };
 
   const [isAddedToCart, setIsAddedToCart] = useState(false)
   
@@ -93,7 +91,7 @@ const Ecommerce = ({ productData }: any) => {
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          <Button size="lg" onClick={() => addToLocalStorage(productData.id, productData.type)} >{isAddedToCart ? "Added to cart": "Add to cart"}</Button>          
+          <Button size="lg" onClick={() => handleContactSeller()} >Contact Seller</Button>          
         </div>
       </div>
     </div>
