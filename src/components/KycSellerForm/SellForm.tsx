@@ -25,7 +25,7 @@ import RealEstateForm from "./forms/RealEstateForm";
 import JobForm from "./forms/JobForm";
 import { ChevronDown, X } from "lucide-react";
 
-export default function SellForm() {
+export default function SellForm({ editData }) {
   const [selectedCategory, setSelectedCategory] = useState("ecommerce");
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -111,9 +111,9 @@ export default function SellForm() {
         </div>
         <Card>
           <CardContent>
-            {selectedCategory === "ecommerce" && <EcommerceForm />}
-            {selectedCategory === "realestate" && <RealEstateForm />}
-            {selectedCategory === "job" && <JobForm />}
+            {selectedCategory === "ecommerce" && <EcommerceForm editData={editData} />}
+            {selectedCategory === "realestate" && <RealEstateForm editData={editData} />}
+            {selectedCategory === "job" && <JobForm editData={editData} />}
           </CardContent>
         </Card>
       </div>

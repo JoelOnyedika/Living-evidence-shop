@@ -9,9 +9,9 @@ export const getProductsDataById = async (id: any, type: any) => {
         var table = null
         if (type === 'ecommerce') {
             table = 'ecommerce_products'
-        } else if (type === 'job') {
+        } else if (type === 'jobPosting' || type.startsWith('job')) {
             table = 'job_postings'
-        } else if (type === 'realestate') {
+        } else if (type === 'realEstate' || type.startsWith('real')) {
             table = 'real_estate_listings'
         }
      

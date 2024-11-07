@@ -74,7 +74,6 @@ export const JobFormSchema = z.object({
   jobType: z.enum(["fulltime", "parttime", "contract", "internship", "temporary"], {
     required_error: "Please select a job type",
   }),
-  image: z.any().optional(),
 })
 
 export const RealEstateFormSchema = z.object({

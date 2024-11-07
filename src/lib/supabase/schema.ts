@@ -6,6 +6,7 @@ export const basicProfiles = pgTable('basic_profiles', {
   username: text('username'),
   email: text('email').unique().notNull(),
   kycStatus: text('kyc_status').default("no"),  // Three modes --- no, pending, yes
+  profileImg: text('profile_img').default("https://fyubkrzqjtcfybpusvuk.supabase.co/storage/v1/object/public/defaults/noImageProvided.png"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
@@ -138,35 +139,35 @@ export const jobPostings = pgTable('job_postings', {
   title: text('title', { length: 30 }).notNull(),
   type: text('type').notNull(),
   jobType: text('job_type').notNull(),
-  image: text('image').notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
 })
 
-export const reviews = pgTable('reviews', {
-  id: uuid('id').primaryKey().notNull(),
-  userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  star: integer('star').notNull(),
-  reviewer: uuid('reviewer').references(() => basicProfiles.id).notNull(),
-  productType: text('product_type').notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-    .defaultNow()
-    .notNull(),
-}) //// BUG IT HAS NO REFRENCE TO ANY PRODUCT AS THERE ARE THREEE PRODUCTS
+// export const reviews = pgTable('reviews', {
+//   id: uuid('id').primaryKey().notNull(),
+//   userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
+//   title: text('title').notNull(),
+//   star: integer('star').notNull(),
+//   reviewer: uuid('reviewer').references(() => basicProfiles.id).notNull(),
+//   productType: text('product_type').notNull(),
+//   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+//     .defaultNow()
+//     .notNull(),
+// }) 
+//// BUG IT HAS NO REFRENCE TO ANY PRODUCT AS THERE ARE THREEE PRODUCTS
 
-export const dashboard = pgTable('dashboard', {
-  id: uuid('id').primaryKey().notNull(),
-  userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
-  totalSales: integer('total_sales').default(0),
-  activeListings: integer('active_listings').default(0),
-  pendingOrders: integer('pending_orders').default(0),
-  review: uuid('review').notNull().references(() => reviews.id, { onDelete: 'cascade' }),
-  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-    .defaultNow()
-    .notNull(),
-});
+// export const dashboard = pgTable('dashboard', {
+//   id: uuid('id').primaryKey().notNull(),
+//   userId: uuid('user_id').notNull().references(() => basicProfiles.id, { onDelete: 'cascade' }),
+//   totalSales: integer('total_sales').default(0),
+//   activeListings: integer('active_listings').default(0),
+//   pendingOrders: integer('pending_orders').default(0),
+//   review: uuid('review').notNull().references(() => reviews.id, { onDelete: 'cascade' }),
+//   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+//     .defaultNow()
+//     .notNull(),
+// });
 
 export const chat = pgTable('chat', {
   id: uuid('id').primaryKey().notNull(),

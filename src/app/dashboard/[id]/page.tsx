@@ -14,6 +14,8 @@ import {dashboardLinks} from '@/lib/constants'
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { checkKycStatus } from '@/lib/supabase/queries/kyc'
+import { getUserDataById } from '@/lib/supabase/queries/auth'
+import { fetchAllTablesData } from '@/lib/supabase/queries/dashboard'
 import { IPopupMessage } from '@/lib/types'
 import DashSkeleton from '@/components/Dashboard/DashSkeleton'
 import PopupMessage from '@/components/global/Popup'
@@ -25,6 +27,8 @@ export default function Dashboard() {
   const router = useRouter()
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false })
   const [kycStatus, setKycStatus] = useState<null | boolean>(true) // must be null at all times to show sk
+  const [userData, setUserData] = useState<null>(null)
+  const [listingCount, setListingCount] = useState<number>(0)
   
   const checkKyc = async ()  => {
     try {
@@ -35,7 +39,7 @@ export default function Dashboard() {
       }
       // note that data returned is bool
       if (data) {
-        setKycStatus(true)
+        setKycStatus(data)
         return true
       } else setKycStatus(false)
         return false
@@ -45,9 +49,33 @@ export default function Dashboard() {
     }
   }
 
+  const getUserData = async () => {
+    const { data, error } = await getUserDataById(id)
+    if (error) {
+      setPopup({ message: error.message, mode: 'error', show: true })
+    } else {
+      setUserData(data)
+    }
+  }
+
+  const fetchListingCount = async () => {
+    const { data, error } = await fetchAllTablesData(id)
+    if (error) {
+      setPopup({ message: error.message, mode: 'error', show: true })
+    } else {
+      setListingCount(data.count)
+    }
+  }
+
   useEffect(() => {
     // const result = checkKyc()
     // DO A CHECK TO SEE IF KYC RESULT IS TRUE OR FLASE
+
+    const result = true
+    if (result) {
+      getUserData()
+      fetchListingCount()
+    }
     
   }, [])
 
@@ -135,15 +163,7 @@ export default function Dashboard() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="sm:max-w-xs">
-                <nav className="grid gap-6 text-lg font-medium">
-                  <Link
-                    href="#"
-                    className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
-                    prefetch={false}
-                  >
-                    <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
-                    <span className="sr-only">Acme Inc</span>
-                  </Link>
+                <nav className="grid gap-6 text-lg font-medium">                  
                   { navlinks.map((data) => (
                       // eslint-disable-next-line react/jsx-key
                       <Link
@@ -162,12 +182,11 @@ export default function Dashboard() {
             </Sheet>
             <div className="flex items-center gap-4">
               <Avatar className="h-9 w-9 border">
-                <AvatarImage src="/placeholder-user.jpg" />
+                <AvatarImage src={userData.profile_img} />
                 <AvatarFallback>AC</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
-                <h1 className="text-lg font-semibold">Joel Onyedika</h1>
-                <p className="text-sm text-muted-foreground">Seller</p>
+                <h1 className="text-lg font-semibold">{userData.username}</h1>
               </div>
             </div>
             
@@ -183,35 +202,15 @@ export default function Dashboard() {
                   <div className="grid gap-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm font-medium">Total Sales</div>
-                        <div className="text-2xl font-bold">$12,345</div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <ArrowUp className="h-4 w-4 fill-green-500" />
-                        <span>+15%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
                         <div className="text-sm font-medium">Active Listings</div>
-                        <div className="text-2xl font-bold">42</div>
+                        <div className="text-2xl font-bold">{listingCount}</div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      {/*<div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <ArrowDown className="h-4 w-4 fill-red-500" />
                         <span>-3%</span>
-                      </div>
+                      </div>*/}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium">Pending Orders</div>
-                        <div className="text-2xl font-bold">8</div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <ArrowUp className="h-4 w-4 fill-green-500" />
-                        <span>+2</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
+                    {/*<div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium">Positive Reviews</div>
                         <div className="text-2xl font-bold">89%</div>
@@ -220,7 +219,7 @@ export default function Dashboard() {
                         <ArrowUp className="h-4 w-4 fill-green-500" />
                         <span>+5%</span>
                       </div>
-                    </div>
+                    </div>*/}
                   </div>
                 </CardContent>
               </Card>

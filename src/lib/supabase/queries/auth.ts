@@ -62,10 +62,10 @@ export const getUserDataById = async (id: string) => {
       return { data, error }
     }
     console.log(data)
-    rerturn { data, error }
+    return { data, error }
     
   } catch (err) {
     console.log(err)
-    return { data: null, error: { message: "Whoops something went wrong, please refresh." }} }
+    return { data: null, error: { message: "Whoops something went wrong, please refresh." }}
   }
 }

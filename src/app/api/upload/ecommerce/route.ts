@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     // Insert product data into Supabase
     const { data, error } = await supabase
       .from('ecommerce_products')
-      .insert({
+      .upsert({
         id: productId,
         user_id: cookie.id,
         title,

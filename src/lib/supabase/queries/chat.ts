@@ -144,3 +144,40 @@ export async function subscribeToChat(chatId) {
     })
     .subscribe()
 }
+
+
+import { pgTable, update, sql } from 'drizzle-orm'; // Adapt based on your ORM setup
+
+// Function to add a message and mark previous as read if it's a reply
+async function addMessageToChat(chatId, senderId, content) {
+  // Retrieve the current chat with messages
+  const chat = await pgTable('chat').select('*').where({ id: chatId }).first();
+
+  if (!chat) {
+    throw new Error('Chat not found');
+  }
+
+  // Parse the current messages
+  const messages = chat.messages || [];
+
+  // Mark the previous message as read, if there is one
+  if (messages.length > 0) {
+    messages[messages.length - 1].is_read = true;
+  }
+
+  // Add the new message as unread
+  const newMessage = {
+    id: uuidv4(),       // Unique ID for the message
+    sender: senderId,   // ID of the sender
+    content: content,   // Message content
+    timestamp: new Date().toISOString(),
+    is_read: false      // New messages are unread by default
+  };
+  
+  messages.push(newMessage);
+
+  // Update the chat's messages field in the database
+  await pgTable('chat')
+    .update({ messages: JSON.stringify(messages) })
+    .where({ id: chatId });
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { JobFormSchema, IPopupMessage } from '@/lib/types';
 import PopupMessage from '@/components/global/Popup';
-import Loader from "@/components/global/loader";
+import { Loader2 } from 'lucide-react'
 
 const JobForm = () => {
   const form = useForm({
@@ -29,10 +29,8 @@ const JobForm = () => {
       salary: 0,
       location: '',
       jobType: '',
-      image: null,
-    },
+    },,
   });
-
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -47,7 +45,7 @@ const JobForm = () => {
     formData.append('salary', data.salary.toString());
     formData.append('location', data.location);
     formData.append('jobType', data.jobType);
-    formData.append('image', data.image);
+    // formData.append('image', data.image);
 
     try {
       const response = await fetch('/api/upload/jobPosting', {
@@ -56,11 +54,12 @@ const JobForm = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload');
+        console.log('Failed to upload');
+        setPopup({ message: 'Failed to upload', mode: 'error', show: true })
       }
 
       const result = await response.json();
-      router.push(`/buy/job/${result.productId}`);
+      router.push(`/jobs`);
     } catch (error) {
       console.error('Error:', error);
       setPopup({ message: 'Whoops, something went wrong', mode: 'error', show: true });
@@ -173,21 +172,8 @@ const JobForm = () => {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="image"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image</FormLabel>
-                <FormControl>
-                  <Input type="file" onChange={(e) => field.onChange(e.target.files?.[0])} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <Button type="submit" className="w-full">
-            {isSubmitting ? <Loader /> : "Submit"}
+            {isSubmitting ? <Loader2 className="animate-spin" /> : "Submit"}
           </Button>
         </form>
       </Form>

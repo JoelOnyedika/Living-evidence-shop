@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -24,7 +25,6 @@ import {
 } from "@/components/ui/form";
 import { RealEstateFormSchema, IPopupMessage } from "@/lib/types";
 import PopupMessage from "@/components/global/Popup";
-import Loader from "@/components/global/loader";
 
 const RealEstateForm = () => {
   const [popup, setPopup] = useState<IPopupMessage>({
@@ -47,6 +47,8 @@ const RealEstateForm = () => {
       image: null,
     },
   });
+
+  
 
   const onSubmit = async (data: z.infer<typeof RealEstateFormSchema>) => {
     setIsSubmitting(true);
@@ -201,7 +203,7 @@ const RealEstateForm = () => {
           )}
       />
           <Button type="submit" className="w-full">
-            {isSubmitting ? <Loader /> : "Submit"}
+            {isSubmitting ? <Loader2 className="animate-spin" /> : "Submit"}
           </Button>
         </form>
       </Form>

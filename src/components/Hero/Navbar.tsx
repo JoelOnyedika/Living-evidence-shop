@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {Home as HomeIcon, User, MessageCircle, Bell, Star, Package} from 'lucide-react'
+import {Home as HomeIcon, User, MessageCircle, Bell, Star, Package, Breifcase} from 'lucide-react'
 import { getCookie } from '@/lib/server-actions/auth-actions'
 import { navbarLinks } from '@/lib/constants'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -19,10 +19,13 @@ const Navbar = () => {
   const getUserCookie = async () => {
     try {
       const getCookies = await getCookie('userCookie')
-      const userCookie = JSON.parse(getCookies.value)
-
-      console.log(userCookie)
-      if (userCookie) setCookie(userCookie)
+      if (!getCookies) {
+        return
+      } else {
+        const userCookie = JSON.parse(getCookies.value)
+        console.log(userCookie)
+        setCookie(userCookie)
+      }
     } catch (error) {
       console.log(error)
     }

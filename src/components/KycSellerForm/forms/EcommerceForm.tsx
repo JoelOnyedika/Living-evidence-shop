@@ -29,7 +29,7 @@ import { useParams } from "next/navigation";
 import { EcommerceFormSchema as formSchema } from "@/lib/types";
 
 
-export default function EcommerceForm() {
+export default function EcommerceForm({ editData }) {
   const [popup, setPopup] = useState<IPopupMessage>({
     message: "",
     mode: null,
@@ -41,10 +41,14 @@ export default function EcommerceForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      price: 0,
-      category: "",
+      userId: editData ? editData.user_id : "",
+      title: editData ? editData.title : "",
+      description: editData ? editData.description : "",
+      price: editData ? editData.price : "",
+      category: editData ? editData.category : "",
+      brand: editData ? editData.brand : "",
+      model: editData ? editData.model : "",
+      condition: editData ? editData.condition : "",
     },
   });
 

@@ -22,7 +22,7 @@ import { IPopupMessage } from "@/lib/types";
 import Ecommerce from "@/components/Buy/Ecommerce";
 import PopupMessage from "@/components/global/Popup";
 import RealEstate from "@/components/Buy/RealEstate";
-import Loader from "@/components/global/loader";
+import LoadingSpinner from "@/components/global/LoadingSpinner";
 
 export default function Buy() {
   const [popup, setPopup] = useState<IPopupMessage>({
@@ -87,7 +87,7 @@ export default function Buy() {
       {productData === null ? (
        <div className="flex justify-center items-center h-full w-full">
        <div className="transform scale-150">
-         <Loader />
+         <LoadingSpinner className="animate-spin" />
        </div>
      </div>
       ) : productData.map((data, index) => (

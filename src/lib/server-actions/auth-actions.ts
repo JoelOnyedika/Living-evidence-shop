@@ -166,8 +166,13 @@ export async function createSessionCookie(email = null) {
   }
 }
 
-export const getCookie =async  (cookieName) => {
-  return cookies().get(cookieName)
+export const getCookie = async (cookieName) => {
+  const cookie = cookies().get(cookieName);
+  if (!cookie) {
+    console.warn(`Cookie with name "${cookieName}" does not exist.`);
+    return null; // or you can return a default value like '' or {} depending on your needs
+  }
+  return cookie;
 }
 
 export const signUpWithOAuth = async (provider) => {

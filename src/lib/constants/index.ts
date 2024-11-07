@@ -70,28 +70,20 @@ export const homepageDetails = [
 
 export const navbarLinks = [
   {id: 1, title: "Home", href: "/", icon: Home},
-  {id: 3, title: "Sell", href: "/sell", isDynamic: true, icon: HandCoins},
-  {id: 3, title: "Jobs", href: "/jobs", isDynamic: true, icon: HandCoins},
+  {id: 2, title: "Sell", href: "/sell", isDynamic: true, icon: HandCoins},
+  {id: 3, title: "Jobs", href: "/jobs", icon: HandCoins},
   {id: 4, title: "How It Works", href: "/how-it-works", icon: Gem},
   {id: 5, title: "About Us", href: "/about", icon: Book},
   {id: 6, title: "Contact Us", href: "/contact", icon: Smile},
 ]
 
 export const dashboardLinks = (id: any) => [
-  {
-    id: 1, title: "Dashboard", icon: Home, href: `/dashboard/${id}/dashboard`
-  },
+ 
   {
     id: 2, title: "My Listing", icon: Package, href: `/dashboard/${id}/listing`
   },
   {
-    id: 3, title: "Reviews", icon: Star, href: `/dashboard/${id}/reviews`
-  },
-  {
-    id: 4, title: "Messages", icon: MessageCircle, href: `/dashboard/${id}/messages`
-  },
-  {
-    id: 5, title: "Account Settings", icon: Settings, href:`/dashboard/${id}/settings`
+    id: 4, title: "Messages", icon: MessageCircle, href: `/dashboard/${id}/chats`
   },
   {
     id: 6, title: "Logout", icon: Power, href: "/logout"

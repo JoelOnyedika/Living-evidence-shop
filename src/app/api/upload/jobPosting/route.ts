@@ -27,20 +27,9 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string;
     const salary = parseFloat(formData.get('salary') as string);
     const jobType = formData.get('jobType') as string;
-    const image = formData.get('image') as File;
     
 
     const productId = uuidv4();
-    const imageUrls = await uploadImages(
-      'projectImages',
-      'job_postings',
-      cookie.id,
-      productId,
-      [image]
-    );
-    if (imageUrls.error) {
-        console.log('image',imageUrls.error)
-    }
 
     // Create Supabase client
     const supabase = await createClient();
@@ -50,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Insert product data into Supabase
     const { data, error } = await supabase
       .from('job_postings')
-      .insert({
+      .upsert({
         id: productId,
         user_id: cookie.id,
         title,
@@ -58,7 +47,6 @@ export async function POST(request: NextRequest) {
         salary,
         location,
         job_type: jobType,
-        image: imageUrls,
         type: 'jobPosting'
       });
 
@@ -67,7 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.message })
     }
 
-    return NextResponse.json({ success: true, productId, imageUrls });
+    return NextResponse.json({ success: true, productId });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
