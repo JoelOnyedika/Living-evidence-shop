@@ -29,7 +29,7 @@ const JobForm = () => {
       salary: 0,
       location: '',
       jobType: '',
-    },,
+    }
   });
   const [popup, setPopup] = useState<IPopupMessage>({ message: "", mode: null, show: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
