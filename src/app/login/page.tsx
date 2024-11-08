@@ -88,7 +88,7 @@ const onSubmit: SubmitHandler<z.infer<typeof LoginFormSchema>> = async (
         <div>
           <h1 className="text-2xl font-bold text-center">Log in</h1>
           <div className="flex justify-center">
-            <span className="mr-2 text-sm font-semibold text-center">Haven't signed up yet?</span>
+            <span className="mr-2 text-sm font-semibold text-center">Have not signed up yet?</span>
             <Link href="/signup" className="text-blue-500 hover:underline font-bold">
               Signup
             </Link>

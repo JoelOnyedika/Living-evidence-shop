@@ -21,8 +21,8 @@ const DashSidebar = () => {
                 <Package2 className="h-4 w-4 transition-all group-hover:scale-110" />
                 <span className="sr-only">Acme Inc</span>
               </Link>
-              { navlinks.map((data) => (
-                <Tooltip>
+              { navlinks.map((data, idx) => (
+                <Tooltip key={idx}>
                   <TooltipTrigger asChild>
                     <Link
                       href={data.href}

@@ -21,7 +21,7 @@ export default function Home() {
   const [listings, setListings] = useState([]);
   const [error, setError] = useState(null);
   const [isVisible, setIsVisible] = useState(false)
-  const targetRef = useRef(null)
+  // const targetRef = useRef(null)
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -54,35 +54,35 @@ export default function Home() {
     fetchListings();
   }, [searchTerm, listingType]);
 
-  useEffect(() => {
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      setIsVisible(entry.isIntersecting);
-      if (entry.isIntersecting) {
-        console.log("The third-to-last item is in view!");
-      } else {
-        console.log("The third-to-last item is out of view.");
-      }
-    },
-    {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1, // 10% of the element is visible
-    }
-  );
+//   useEffect(() => {
+//   const observer = new IntersectionObserver(
+//     ([entry]) => {
+//       setIsVisible(entry.isIntersecting);
+//       if (entry.isIntersecting) {
+//         console.log("The third-to-last item is in view!");
+//       } else {
+//         console.log("The third-to-last item is out of view.");
+//       }
+//     },
+//     {
+//       root: null,
+//       rootMargin: '0px',
+//       threshold: 0.1, // 10% of the element is visible
+//     }
+//   );
 
-  if (targetRef.current) {
-    console.log('Observing the third-to-last item');
-    observer.observe(targetRef.current);
-  }
+//   if (targetRef.current) {
+//     console.log('Observing the third-to-last item');
+//     observer.observe(targetRef.current);
+//   }
 
-  return () => {
-    if (targetRef.current) {
-      console.log('Stopped observing the third-to-last item');
-      observer.unobserve(targetRef.current);
-    }
-  };
-}, []);
+//   return () => {
+//     if (targetRef.current) {
+//       console.log('Stopped observing the third-to-last item');
+//       observer.unobserve(targetRef.current);
+//     }
+//   };
+// }, []);
 
 
   const handleSearch = (e) => {
@@ -178,7 +178,7 @@ export default function Home() {
                   listings.slice(0, 20).map((item, idx) => {
                     const isThirdToLast = idx === listings.length - 3;
                     return (
-                      <Card key={idx} ref={isThirdToLast ? targetRef : null}>
+                      <Card key={idx} >
                         {item.image && item.image.length > 0 ? (
                           <Image
                             src={item.image[0]}
